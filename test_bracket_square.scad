@@ -1,11 +1,11 @@
 include <../library/boxes.scad>
 include <../library/regular_shapes.scad>
 
-$fn=20;
+$fn=120;
 
 screw_spacing_x = 78;
 screw_spacing_y = 66;
-height_forward  = 5;
+height_forward  = 7;
 height_aft      = 1;
 height_bracket  = 3;
 diameter_standoff = 7;
