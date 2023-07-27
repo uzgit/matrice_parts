@@ -62,7 +62,7 @@ module v_track_female(width=6, height=4, base_length=15, theta=75, depth=3, tole
 }
 
 length=20;
-tolerance=0.1;
+tolerance=0.2;
 base_length=8;
 theta=65;
 width=10;
