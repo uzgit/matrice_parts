@@ -1,4 +1,4 @@
-module isosceles_triangle(base_length, theta, tolerance=0)
+module isosceles_triangle(base_length, theta, tolerance)
 {
     h = base_length * tan(theta) / 2;
     scalar = tolerance/(h/3) + 1;
@@ -35,7 +35,7 @@ module tolerant_isosceles_triangle(base_length, theta, tolerance)
 }
 
 
-module v_track_male(base_length=15, theta=75, depth=3, tolerance=0.1)
+module v_track_male_cross_section(base_length=15, theta=75, depth=3, tolerance=0.1)
 {
     // do not multiply tolerance
     tolerance = -tolerance / 2;
@@ -50,26 +50,47 @@ module v_track_male(base_length=15, theta=75, depth=3, tolerance=0.1)
     }
 }
 
-module v_track_female(width=6, height=4, base_length=15, theta=75, depth=3, tolerance=0.1)
+module v_track_female_cross_section(width=6, height=4, base_length=15, theta=75, depth=3, tolerance=0.1)
 {
     difference()
     {
         translate([0, -height/2 + depth, 0])
         square([width, height], center=true);
         
-        v_track_male(base_length, theta, depth, -tolerance);
+        v_track_male_cross_section(base_length, theta, depth, -tolerance);
     }
 }
 
-length=20;
-tolerance=0.2;
-base_length=8;
-theta=65;
-width=10;
-height=5;
+module v_track_male_extrusion(length=20, base_length=15, theta=75, depth=3, tolerance=0.1)
+{
+    translate([0, length/2, 0])
+    rotate([90, 0, 0])
+    linear_extrude(length)
+    v_track_male_cross_section(base_length=base_length, theta=theta, depth=depth, tolerance=tolerance);
+}
 
-linear_extrude(length)
-v_track_male(width=width, height=height, base_length=base_length, theta=theta, tolerance=tolerance);
+module v_track_female_extrusion(length=20, base_length=15, theta=75, depth=3, tolerance=0.1, height=5, width=20)
+{
+    translate([0, length/2, 0])
+    rotate([90, 0, 0])
+    linear_extrude(length)
+    v_track_female_cross_section(height=height, width=width, base_length=base_length, theta=theta, depth=depth, tolerance=tolerance);
+}
 
-linear_extrude(length)
-v_track_female(width=width, height=height, base_length=base_length, theta=theta, tolerance=tolerance);
+//length=55;
+//tolerance=0.1;
+//base_length=15;
+//theta=65;
+//width=20;
+//height=5;
+//depth=3;
+//
+//v_track_male_extrusion(length=length, base_length=base_length, tolerance=tolerance, theta=theta, width=width, height=height, depth=depth);
+//
+//v_track_female_extrusion(height=height, width=width, length=length, base_length=base_length, tolerance=tolerance, theta=theta, depth=depth);
+
+//linear_extrude(length)
+//v_track_male_cross_section(width=width, height=height, base_length=base_length, theta=theta, tolerance=tolerance);
+
+//linear_extrude(length)
+//v_track_female_cross_section(width=width, height=height, base_length=base_length, theta=theta, tolerance=tolerance);
