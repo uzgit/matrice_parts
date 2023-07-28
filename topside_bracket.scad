@@ -1,6 +1,6 @@
 include <../library/boxes.scad>
 include <../library/regular_shapes.scad>
-include <./v_track_triangle.scad>
+include <./v_track.scad>
 
 $fn=20;
 
@@ -187,8 +187,8 @@ module topside_bracket()
     }
 }
 
-//translate([0, 0, 20])
+translate([0, 0, 20])
 droneside_bracket();
 
-//translate([0, 0, -20])
-//topside_bracket();
+translate([0, 0, -20])
+topside_bracket();

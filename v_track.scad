@@ -1,61 +1,96 @@
-pi = 3.141592653589793;
-
-module v_track(height=5, width=10, width_track_top=5, width_track_bottom=8, depth_track=3, length=50, runner=false, both=false, tolerance=0.5)
+module isosceles_triangle(base_length, theta, tolerance)
 {
-    x1a = -width_track_top/2;
-    y1a = 0;
-    x2a = width_track_top/2;
-    y2a = 0;
-    x3a = width_track_bottom/2;
-    y3a = -depth_track;
-    x4a = -width_track_bottom/2;
-    y4a = -depth_track;
+    h = base_length * tan(theta) / 2;
+    scalar = tolerance/(h/3) + 1;
     
-    theta = atan2( y1a - y4a, x1a - x4a);
+    p1 = [0, h*2/3*scalar];
+    p2 = [-base_length/2*scalar, -h/3*scalar];
+    p3 = [base_length/2*scalar, -h/3*scalar];
     
-    if( ! runner || both )
+    polygon([p1, p2, p3]);
+}
+
+module tolerant_isosceles_triangle(base_length, theta, tolerance)
+{
+    h = base_length * tan(theta) / 2;
+    x_translation = 0;
+    y_translation = h/3;
+    z_translation = 0;
+    
+    if( tolerance > 0 )
     {
-        echo("start");
-        echo( theta );
-        echo( tolerance*cos(theta + 90) )
-        echo("finish");
-        
-        x1 = x1a + tolerance*cos(theta + 90);
-        y1 = y1a + tolerance*sin(theta + 90);
-        x4 = x4a + tolerance*cos(theta + 90);
-        y4 = y4a - tolerance*sin(theta + 90);
-        
-        x2 = x2a - tolerance*cos(theta + 90);
-        y2 = y2a + tolerance*sin(theta + 90);
-        x3 = x3a - tolerance*cos(theta + 90);
-        y3 = y3a - tolerance*sin(theta + 90);
-        
-        difference()
-        {
-            translate([0, -height/2, 0])
-            square( [width, height], center=true );
-            polygon(points = [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]);
-        }
+        translate([x_translation, y_translation, z_translation])
+            isosceles_triangle(base_length, theta, tolerance);
     }
-    
-    if( runner || both )
+    else if( tolerance < 0 )
     {
-        x1 = x1a;// + tolerance*cos(theta + 90);
-        y1 = y1a;// + tolerance*sin(theta + 90);
-        x4 = x4a;// + tolerance*cos(theta + 90);
-        y4 = y4a;// - tolerance*sin(theta + 90);
-        
-        x2 = x2a;// - tolerance*cos(theta + 90);
-        y2 = y2a;// + tolerance*sin(theta + 90);
-        x3 = x3a;// - tolerance*cos(theta + 90);
-        y3 = y3a;// - tolerance*sin(theta + 90);
-        
-//        square( [width, height], center=true );
-        polygon(points = [[x1, y1],
-                      [x2, y2],
-                      [x3, y3],
-                      [x4, y4]]);
+        translate([x_translation, y_translation, z_translation])
+            isosceles_triangle(base_length, theta, tolerance);
+    }
+    else
+    {
+        translate([x_translation, y_translation, z_translation])
+        isosceles_triangle(base_length, theta);
     }
 }
 
-v_track(length=20, runner=true, both=true, tolerance=0.5);
+
+module v_track_male_cross_section(base_length=15, theta=75, depth=3, tolerance=0.1)
+{
+    // do not multiply tolerance
+    tolerance = -tolerance / 2;
+    
+    h = base_length * tan(theta) / 2;
+    difference()
+    {
+        translate([0, tolerance/2, 0])
+        tolerant_isosceles_triangle(base_length, theta, tolerance=tolerance);
+        translate([0, depth + (h-depth)/2, 0])
+        square([base_length, h-depth], center=true);
+    }
+}
+
+module v_track_female_cross_section(width=6, height=4, base_length=15, theta=75, depth=3, tolerance=0.1)
+{
+    difference()
+    {
+        translate([0, -height/2 + depth, 0])
+        square([width, height], center=true);
+        
+        v_track_male_cross_section(base_length, theta, depth, -tolerance);
+    }
+}
+
+module v_track_male_extrusion(length=20, base_length=15, theta=75, depth=3, tolerance=0.1)
+{
+    translate([0, length/2, 0])
+    rotate([90, 0, 0])
+    linear_extrude(length)
+    v_track_male_cross_section(base_length=base_length, theta=theta, depth=depth, tolerance=tolerance);
+}
+
+module v_track_female_extrusion(length=20, base_length=15, theta=75, depth=3, tolerance=0.1, height=5, width=20)
+{
+    translate([0, length/2, 0])
+    rotate([90, 0, 0])
+    linear_extrude(length)
+    v_track_female_cross_section(height=height, width=width, base_length=base_length, theta=theta, depth=depth, tolerance=tolerance);
+}
+
+//length=55;
+//tolerance=0.1;
+//base_length=15;
+//theta=65;
+//width=20;
+//height=5;
+//depth=3;
+//
+//v_track_male_extrusion(length=length, base_length=base_length, tolerance=tolerance, theta=theta, width=width, height=height, depth=depth);
+//
+//v_track_female_extrusion(height=height, width=width, length=length, base_length=base_length, tolerance=tolerance, theta=theta, depth=depth);
+
+//linear_extrude(length)
+//v_track_male_cross_section(width=width, height=height, base_length=base_length, theta=theta, tolerance=tolerance);
+
+//linear_extrude(length)
+//v_track_female_cross_section(width=width, height=height, base_length=base_length, theta=theta, tolerance=tolerance);
