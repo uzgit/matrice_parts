@@ -7,7 +7,7 @@ $fn=20;
 screw_spacing_x = 78;
 screw_spacing_y = 66;
 height_forward  = 6;
-height_aft      = 1;
+height_aft      = 2;
 height_bracket  = 6;
 diameter_standoff = 7;
 diameter_screw_hole = 3.2;
@@ -97,6 +97,7 @@ depth=3;
 width_backstop_y = 3;
 
 spacing_track_x = 40;
+threaded_insert_translation_y = -30;
 
 module droneside_bracket()
 {
@@ -114,8 +115,18 @@ module droneside_bracket()
             {
                 translate([x_translation, -width_backstop_y, 0])
                 hull()
-                v_track_female_extrusion(height=height, width=width, length=length-width_backstop_y, base_length=base_length, tolerance=tolerance, theta=theta, depth=depth);
+                v_track_female_extrusion(height=height, width=width, length=length-width_backstop_y*2, base_length=base_length, tolerance=tolerance, theta=theta, depth=depth);
             }
+        }
+        
+        translate([0, threaded_insert_translation_y, 0])
+        
+        union()
+        {
+            // threaded insert hole
+            cylinder(d=3.2, h=6);
+            translate([0, 0, 1.5]) // to reverse the direction without the rotation command
+            cylinder(d=4, h=4.5);
         }
     }
 
@@ -127,20 +138,57 @@ module droneside_bracket()
     }
 }
 
+topside_bracket_extension_height = 6;
 module topside_bracket()
 {
-    union()
+    difference()
     {
-        translate([0, 0, -(height-depth)/2])
-        cube([width_bracket_x, width_bracket_y, height-depth], center=true);
-        for( x_translation = [-spacing_track_x/2, spacing_track_x/2] )
+        union()
         {
-            translate([x_translation, 0, 0])
-            v_track_female_extrusion(height=height, width=width-tolerance/2, length=length, base_length=base_length, tolerance=tolerance, theta=theta, depth=depth);
+            // this is redunant but I'm leaving it for robustness in changes
+            translate([0, 0, -(height-depth)/2])
+            cube([width_bracket_x, width_bracket_y, height-depth], center=true);
+            for( x_translation = [-spacing_track_x/2, spacing_track_x/2] )
+            {
+                translate([x_translation, -width_backstop_y, 0])
+                v_track_female_extrusion(height=height, width=width-tolerance/2, length=length-width_backstop_y*2, base_length=base_length, tolerance=tolerance, theta=theta, depth=depth);
+            }
+            
+            translate([0, 0, -topside_bracket_extension_height/2])
+            cube([width_bracket_x, width_bracket_y, topside_bracket_extension_height], center=true);
+        }
+        union()
+        {
+            for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
+            {
+                for( y_translation = [-screw_spacing_y/2, screw_spacing_y/2] )
+                {
+                    translate([x_translation, y_translation, 0])
+                    rotate([0, 180, 0])
+                    base_plate_screw_head_cone();
+                    
+                    translate([x_translation, y_translation, -topside_bracket_extension_height])
+                    cylinder(d=diameter_screw_hole,h=topside_bracket_extension_height);
+                }
+            }
+            
+        // threaded insert screw hole
+        translate([0, threaded_insert_translation_y, -topside_bracket_extension_height])
+        union()
+        {
+            // threaded insert hole
+            cylinder(d=3.2, h=topside_bracket_extension_height);
+//            translate([0, 0, 1.5]) // to reverse the direction without the rotation command
+//            cylinder(d=4, h=4.5);
+            base_plate_screw_head_cone();
+        }
+        
         }
     }
 }
 
+//translate([0, 0, 20])
 droneside_bracket();
 
+//translate([0, 0, -20])
 //topside_bracket();
