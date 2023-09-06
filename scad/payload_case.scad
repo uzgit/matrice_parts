@@ -134,7 +134,7 @@ module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickn
     }
 }
 
-module component_mounting_plate(side_length=70, height=6)
+module component_mounting_plate_rpi(side_length=70, height=6)
 {
 //    side_length = 50;
     
@@ -178,10 +178,57 @@ module component_mounting_plate(side_length=70, height=6)
     }
 }
 
-//translate([0, 0, 50])
-//component_mounting_plate();
+module component_mounting_plate_jetson_nano(height=5)
+{
+    plate_screw_y_offset = 17;
+    plate_screw_translation = 55/2;
+    support_hole_width = 10;
+    support_hole_height = 3;
+    
+    jetson_screw_x_translation = 86;
+    jetson_screw_y_translation = 58;
+    
+    tolerance = 4;
+    
+    difference()
+    {
+        union()
+        {
+            translate([-jetson_screw_x_translation/2 - tolerance, -jetson_screw_y_translation/2 - plate_screw_y_offset -tolerance, 0])
+            cube([jetson_screw_x_translation + tolerance*2, jetson_screw_y_translation + plate_screw_y_offset + tolerance*2, height]);
+        }        
+        union()
+        {
+            for(x_translation = [-plate_screw_translation, plate_screw_translation])
+            {
+                for(y_translation = [-plate_screw_translation, plate_screw_translation])
+                {
+                    translate([x_translation, y_translation - plate_screw_y_offset, 0])
+                    union()
+                    {
+                        cylinder(d=4,h=20);
+                        cube([support_hole_width, support_hole_width, support_hole_height], center=true);
+                    }
+                }
+            }
+            
+            for(x_translation = [-jetson_screw_x_translation/2, jetson_screw_x_translation/2])
+            {
+                for(y_translation = [-jetson_screw_y_translation/2, jetson_screw_y_translation/2])
+                {
+                    translate([x_translation, y_translation, 0])
+                    cylinder(d=2,h=20);
+                }
+            }
+        }
+    }
+}
 
-base_plate(radius=75, wall_height=5);
+//translate([0, 0, 50])
+//component_mounting_plate_rpi();
+component_mounting_plate_jetson_nano();
+
+//base_plate(radius=75, wall_height=5);
 
 //translate([0, 0, 50])
 //top(radius=75, height=60);
