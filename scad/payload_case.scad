@@ -180,6 +180,7 @@ module component_mounting_plate_rpi(side_length=70, height=6)
 
 module component_mounting_plate_jetson_nano(height=5)
 {
+    plate_screw_x_offset = 3;
     plate_screw_y_offset = 17;
     plate_screw_translation = 55/2;
     support_hole_width = 10;
@@ -187,6 +188,7 @@ module component_mounting_plate_jetson_nano(height=5)
     
     jetson_screw_x_translation = 86;
     jetson_screw_y_translation = 58;
+    jetson_standoff_height = 3;
     
     tolerance = 4;
     
@@ -196,6 +198,20 @@ module component_mounting_plate_jetson_nano(height=5)
         {
             translate([-jetson_screw_x_translation/2 - tolerance, -jetson_screw_y_translation/2 - plate_screw_y_offset -tolerance, 0])
             cube([jetson_screw_x_translation + tolerance*2, jetson_screw_y_translation + plate_screw_y_offset + tolerance*2, height]);
+            
+            
+            for(x_translation = [-jetson_screw_x_translation/2, jetson_screw_x_translation/2])
+            {
+                for(y_translation = [-jetson_screw_y_translation/2, jetson_screw_y_translation/2])
+                {
+                    translate([x_translation, y_translation, height])
+                    difference()
+                    {
+                        cylinder(d=4,h=jetson_standoff_height);
+                        cylinder(d=1.75,h=jetson_standoff_height);
+                    }
+                }
+            }            
         }        
         union()
         {
@@ -203,7 +219,7 @@ module component_mounting_plate_jetson_nano(height=5)
             {
                 for(y_translation = [-plate_screw_translation, plate_screw_translation])
                 {
-                    translate([x_translation, y_translation - plate_screw_y_offset, 0])
+                    translate([x_translation + plate_screw_x_offset, y_translation - plate_screw_y_offset, 0])
                     union()
                     {
                         cylinder(d=4,h=20);
@@ -217,7 +233,7 @@ module component_mounting_plate_jetson_nano(height=5)
                 for(y_translation = [-jetson_screw_y_translation/2, jetson_screw_y_translation/2])
                 {
                     translate([x_translation, y_translation, 0])
-                    cylinder(d=2,h=20);
+                    cylinder(d=1.75,h=height);
                 }
             }
         }
@@ -232,3 +248,4 @@ component_mounting_plate_jetson_nano();
 
 //translate([0, 0, 50])
 //top(radius=75, height=60);
+
