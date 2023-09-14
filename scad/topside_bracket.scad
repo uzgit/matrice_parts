@@ -119,15 +119,14 @@ module droneside_bracket()
             }
         }
         
-        translate([0, threaded_insert_translation_y, 0])
-        
-        union()
-        {
-            // threaded insert hole
-            cylinder(d=3.2, h=6);
-            translate([0, 0, 1.5]) // to reverse the direction without the rotation command
-            cylinder(d=4, h=4.5);
-        }
+//        translate([0, threaded_insert_translation_y, 0])
+//        union()
+//        {
+//            // threaded insert hole
+//            cylinder(d=3.2, h=6);
+//            translate([0, 0, 1.5]) // to reverse the direction without the rotation command
+//            cylinder(d=4, h=4.5);
+//        }
     }
 
     for( x_translation = [-spacing_track_x/2, spacing_track_x/2] )
@@ -139,7 +138,7 @@ module droneside_bracket()
 }
 
 topside_bracket_extension_height = 6;
-module topside_bracket()
+module topside_bracket(include_locking_mechanism=true)
 {
     difference()
     {
@@ -173,16 +172,68 @@ module topside_bracket()
             }
             
         // threaded insert screw hole
-        translate([0, threaded_insert_translation_y, -topside_bracket_extension_height])
-        union()
-        {
+//        translate([0, threaded_insert_translation_y, -topside_bracket_extension_height])
+//        union()
+//        {
             // threaded insert hole
-            cylinder(d=3.2, h=topside_bracket_extension_height);
+//            cylinder(d=3.2, h=topside_bracket_extension_height);
 //            translate([0, 0, 1.5]) // to reverse the direction without the rotation command
 //            cylinder(d=4, h=4.5);
-            base_plate_screw_head_cone();
-        }
+//            base_plate_screw_head_cone();
+//        }
         
+        }
+    }
+    
+    if( include_locking_mechanism )
+    {
+        lock_x = 105;
+        lock_y = 90;
+        lock_z = topside_bracket_extension_height * 2;
+        
+        lock_overhang_x = 4;
+        
+        gap_x = 0.5;
+        gap_y_aft = 0.5;
+        
+        difference()
+        {
+            union()
+            {
+                // starboard lock
+                translate([-lock_x/2, lock_y/2 - 10, 0])
+                rotate([0, 0, 45])
+                cube([30, 30, lock_z], center=true);
+                
+                // portside lock
+                translate([lock_x/2, lock_y/2 - 10, 0])
+                rotate([0, 0, 45])
+                cube([30, 30, lock_z], center=true);
+                
+                translate([-lock_x/2, -lock_y/2, -topside_bracket_extension_height])
+                cube([lock_x, lock_y, lock_z]);
+            }
+            union()
+            {
+                // main negative space to preserve the bracket itself
+                translate([-width_bracket_x/2 - gap_x, -width_bracket_y/2, -topside_bracket_extension_height])
+                cube([width_bracket_x + 2*gap_x, width_bracket_y + gap_y_aft, lock_z]);
+                
+                // negative space for lock aft
+                translate([-width_bracket_x/2 - gap_x + lock_overhang_x, -width_bracket_y/2, -topside_bracket_extension_height])
+                cube([width_bracket_x + 2*gap_x - lock_overhang_x*2, width_bracket_y + gap_y_aft + 50, lock_z]);
+            }
+            
+            // outer negative space for trimming
+            difference()
+            {
+                outer = 1000;
+                translate([-outer/2, -outer/2, -topside_bracket_extension_height])
+                cube([outer, outer, lock_z]);
+                
+                translate([-lock_x/2, -lock_y/2, -topside_bracket_extension_height])
+                cube([lock_x, lock_y + 7.5, lock_z]);
+            }
         }
     }
 }

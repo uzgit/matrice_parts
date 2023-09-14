@@ -90,46 +90,87 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
     }
 }
 
-module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=5 )
+module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=5, locking_clips=true )
 {
-    difference()
+    union()
     {
-        union()
+        // edge
+        difference()
         {
-            // edge
-            difference()
+            dodecagon_prism_rotated(height=edge_height, radius=radius);
+            dodecagon_prism_rotated(height=edge_height, radius=radius-(wall_thickness-edge_thickness));
+        }
+        
+        // main canopy
+        difference()
+        {
+            hull()
             {
-                dodecagon_prism_rotated(height=edge_height, radius=radius);
-                dodecagon_prism_rotated(height=edge_height, radius=radius-(wall_thickness-edge_thickness));
+                // wall
+                translate([0, 0, edge_height])
+                dodecagon_prism_rotated(height=wall_height, radius=radius);
+                
+                translate([0, 0, edge_height - wall_height + height])
+                dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
             }
             
-            // main canopy
-            difference()
+            hull()
             {
-                hull()
-                {
-                    // wall
-                    translate([0, 0, edge_height])
-                    dodecagon_prism_rotated(height=wall_height, radius=radius);
-                    
-                    translate([0, 0, edge_height - wall_height + height])
-                    dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
-                }
+                // wall
+                translate([0, 0, edge_height])
+                dodecagon_prism_rotated(height=wall_height, radius=radius-wall_thickness);
                 
-                hull()
-                {
-                    // wall
-                    translate([0, 0, edge_height])
-                    dodecagon_prism_rotated(height=wall_height, radius=radius-wall_thickness);
-                    
-                    translate([0, 0, edge_height - wall_height + height])
-                    dodecagon_prism_rotated(height=wall_height-wall_thickness, radius=(radius/1.2)-wall_thickness);
-                }
+                translate([0, 0, edge_height - wall_height + height])
+                dodecagon_prism_rotated(height=wall_height-wall_thickness, radius=(radius/1.2)-wall_thickness);
             }
         }
-        union()
+    }
+    
+//    translate([radius-1.56, 0, 0])
+//    cube([2, 10, 5], center=true);
+    
+    if( locking_clips )
+    {
+        num_clips = 3;
+        
+        for( angle = [ 0 : 360/num_clips : 360 ] )
         {
-
+            // thickness of the bottom plate that the top mounts onto
+            base_plate_thickness = 11;
+            
+            clip_x = 2;
+            clip_y = 20;
+            clip_z = edge_height*2 + base_plate_thickness;
+            
+            clip_overhang_radial = 3;
+            clip_overhang_z = 10;
+            
+            rotate([0, 0, angle])
+//            translate([radius-0.59, 0, 0])
+            translate([radius-0.56, 0, 0])
+            translate([-clip_x, clip_y/2, edge_height*2]) // i cannot derive the x offset sadly
+            rotate([180, 0, 0])
+            union()
+            {
+                union()
+                {
+                    cube([clip_x, clip_y, clip_z]);
+                }
+                
+                translate([0, 0, clip_z + clip_overhang_z])
+                rotate([0, 180, 0])
+                difference()
+                {
+                    union()
+                    {
+                        translate([-2, 0, 0])
+                        cube([clip_overhang_radial*2, clip_y, clip_overhang_z]);
+                    }
+                    translate([-2, 0, -0.5])
+                    rotate([0, 45, 0])
+                    cube([10, clip_y, 10]);
+                }
+            }
         }
     }
 }
@@ -242,10 +283,10 @@ module component_mounting_plate_jetson_nano(height=5)
 
 //translate([0, 0, 50])
 //component_mounting_plate_rpi();
-component_mounting_plate_jetson_nano();
+//component_mounting_plate_jetson_nano();
 
 //base_plate(radius=75, wall_height=5);
 
 //translate([0, 0, 50])
-//top(radius=75, height=60);
+top(radius=75, height=60);
 
