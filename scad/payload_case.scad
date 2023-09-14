@@ -188,7 +188,7 @@ module component_mounting_plate_rpi(side_length=70, height=6)
         }
         
         width = 10;
-        support_hole_height = 4;
+        support_hole_height = 3;
         _x_translation = 55/2;
         _y_translation = 55/2;
         x_offset = 0;
@@ -282,11 +282,11 @@ module component_mounting_plate_jetson_nano(height=5)
 }
 
 //translate([0, 0, 50])
-//component_mounting_plate_rpi();
+component_mounting_plate_rpi();
 //component_mounting_plate_jetson_nano();
 
 //base_plate(radius=75, wall_height=5);
 
 //translate([0, 0, 50])
-top(radius=75, height=60);
+//top(radius=75, height=60);
 

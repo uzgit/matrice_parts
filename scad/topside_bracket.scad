@@ -236,6 +236,12 @@ module topside_bracket(include_locking_mechanism=true)
             }
         }
     }
+    
+    guidance_tab_x = 30;
+    guidance_tab_y = 30;
+    guidance_tab_z = height_bracket;
+    translate([-guidance_tab_x/2, width_bracket_y/2, -guidance_tab_z])
+    cube([guidance_tab_x, guidance_tab_y, guidance_tab_z]);
 }
 
 translate([0, 0, 20])
