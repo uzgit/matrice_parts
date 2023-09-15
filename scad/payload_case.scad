@@ -45,7 +45,7 @@ module supports(height=6, holes=true)
     }
 }
 
-module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35, wall_thickness=3, edge_thickness=1.3, edge_height=5 )
+module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35, wall_thickness=3, edge_thickness=1.3, edge_height=7, locking_screws=true )
 {
     difference()
     {
@@ -86,42 +86,125 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
                     }
                 }
             }
+            
+            translate([0, -radius + 5, bottom_thickness + 9])
+            cube([4, 10, 12], center=true);
+            
+            if( locking_screws )
+            {
+                num = 3;
+                
+                lock_x = 35;
+                lock_y = 7;
+                lock_z = 25;
+                
+                for( angle = [ 0 : 360/num : 360 ] )
+                {
+                    rotate([0, 0, angle])
+                    translate([0, radius+0.943, 0])
+                    difference()
+                    {
+                        for(x_translation = [-10, 10])
+                        {
+                            translate([x_translation, -10, 15])
+                            rotate([90, 0, 180])
+                            cylinder(d=3.2, h=20);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    if( locking_screws )
+    {
+        num = 3;
+        
+        lock_x = 35;
+        lock_y = 7;
+        lock_z = 22.5;
+        
+        for( angle = [ 0 : 360/num : 360 ] )
+        {
+            rotate([0, 0, angle])
+            translate([0, radius+0.943, 0])
+            difference()
+            {
+                translate([-lock_x/2, -lock_y/2, 0])
+                cube([lock_x, lock_y, lock_z]);
+                for(x_translation = [-10, 10])
+                {
+                    translate([x_translation, -10, 15])
+                    rotate([90, 0, 180])
+                    cylinder(d=4, h=20);
+                }
+            }
         }
     }
 }
 
-module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=5, locking_clips=true )
+module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=7, locking_clips=false, locking_screws=true )
 {
-    union()
+    difference()
     {
-        // edge
-        difference()
+        union()
         {
-            dodecagon_prism_rotated(height=edge_height, radius=radius);
-            dodecagon_prism_rotated(height=edge_height, radius=radius-(wall_thickness-edge_thickness));
-        }
-        
-        // main canopy
-        difference()
-        {
-            hull()
+            // edge
+            difference()
             {
-                // wall
-                translate([0, 0, edge_height])
-                dodecagon_prism_rotated(height=wall_height, radius=radius);
-                
-                translate([0, 0, edge_height - wall_height + height])
-                dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
+                dodecagon_prism_rotated(height=edge_height, radius=radius);
+                dodecagon_prism_rotated(height=edge_height, radius=radius-(wall_thickness-edge_thickness));
             }
             
-            hull()
+            // main canopy
+            difference()
             {
-                // wall
-                translate([0, 0, edge_height])
-                dodecagon_prism_rotated(height=wall_height, radius=radius-wall_thickness);
+                hull()
+                {
+                    // wall
+                    translate([0, 0, edge_height])
+                    dodecagon_prism_rotated(height=wall_height, radius=radius);
+                    
+                    translate([0, 0, edge_height - wall_height + height])
+                    dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
+                }
                 
-                translate([0, 0, edge_height - wall_height + height])
-                dodecagon_prism_rotated(height=wall_height-wall_thickness, radius=(radius/1.2)-wall_thickness);
+                union()
+                {
+                    hull()
+                    {
+                        // wall
+                        translate([0, 0, edge_height])
+                        dodecagon_prism_rotated(height=wall_height, radius=radius-wall_thickness);
+                        
+                        translate([0, 0, edge_height - wall_height + height])
+                        dodecagon_prism_rotated(height=wall_height-wall_thickness, radius=(radius/1.2)-wall_thickness);
+                    }
+                }
+            }
+        }
+        
+        if( locking_screws )
+        {
+            num = 3;
+            
+            lock_x = 35;
+            lock_y = 7;
+            lock_z = 25;
+            
+            for( angle = [ 0 : 360/num : 360 ] )
+            {
+                rotate([0, 0, angle])
+                translate([0, radius+0.943, 0])
+                difference()
+                {
+                    for(x_translation = [-10, 10])
+                    {
+                        translate([x_translation, -10, 4])
+                        rotate([90, 0, 180])
+                        cylinder(d=3.2, h=20);
+                    }
+                }
             }
         }
     }
@@ -135,6 +218,8 @@ module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickn
         
         for( angle = [ 0 : 360/num_clips : 360 ] )
         {
+            angle = angle + 90;
+            
             // thickness of the bottom plate that the top mounts onto
             base_plate_thickness = 11;
             
@@ -282,11 +367,12 @@ module component_mounting_plate_jetson_nano(height=5)
 }
 
 //translate([0, 0, 50])
-component_mounting_plate_rpi();
+//component_mounting_plate_rpi();
 //component_mounting_plate_jetson_nano();
 
-//base_plate(radius=75, wall_height=5);
+base_plate(radius=75, wall_height=5);
 
-//translate([0, 0, 50])
-//top(radius=75, height=60);
+translate([0, 0, 60])
+//translate([0, 0, 11])
+top(radius=75, height=60);
 
