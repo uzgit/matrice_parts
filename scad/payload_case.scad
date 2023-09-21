@@ -370,7 +370,7 @@ module component_mounting_plate_jetson_nano(height=5)
 //component_mounting_plate_rpi();
 //component_mounting_plate_jetson_nano();
 
-base_plate(radius=75, wall_height=5);
+//base_plate(radius=75, wall_height=5);
 
 translate([0, 0, 60])
 //translate([0, 0, 11])
