@@ -143,7 +143,7 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
     }
 }
 
-module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=7, locking_clips=false, locking_screws=true )
+module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=7, locking_clips=false, locking_screws=true, ventilation=true )
 {
     difference()
     {
@@ -179,7 +179,26 @@ module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickn
                         
                         translate([0, 0, edge_height - wall_height + height])
                         dodecagon_prism_rotated(height=wall_height-wall_thickness, radius=(radius/1.2)-wall_thickness);
+                                                
                     }
+                    if( ventilation )
+                    {
+                        num_vents = 6;
+                        
+                        for( angle = [ 0 : 360/num_vents : 360 ] )
+                        {
+                            rotate([0, 0, angle])
+                            translate([0, radius - 5, 30])
+                            for( x_translation = [-10 : 2 : 10] )
+                            {
+                                for( z_translation = [-10 : 2 : 10] )
+                                {
+                                    translate([x_translation, 0, z_translation])
+                                    cube([1.5, 20, 1.5], center=true);
+                                }
+                            }
+                        }        
+                    }                    
                 }
             }
         }
