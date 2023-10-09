@@ -1,5 +1,6 @@
 include <../library/regular_shapes.scad>
 include <../library/boxes.scad>
+include <../library/roundedcube.scad>
 
 $fn=20;
 screw_spacing_x = 78;
@@ -159,14 +160,37 @@ module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickn
             // main canopy
             difference()
             {
-                hull()
+                union()
                 {
-                    // wall
-                    translate([0, 0, edge_height])
-                    dodecagon_prism_rotated(height=wall_height, radius=radius);
-                    
-                    translate([0, 0, edge_height - wall_height + height])
-                    dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
+                    hull()
+                    {
+                        // wall
+                        translate([0, 0, edge_height])
+                        dodecagon_prism_rotated(height=wall_height, radius=radius);
+                        
+                        translate([0, 0, edge_height - wall_height + height])
+                        dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
+                    }
+                    if( ventilation )
+                    {
+                        num_vents = 6;
+                        vent_side_length = 30;
+                        vent_height = 50;
+                        _z_translation = 38;
+                        
+                        for( angle = [ 0 : 360/num_vents : 360 ] )
+                        {
+                            rotate([0, 0, angle])
+                            translate([0, radius - 15, _z_translation])
+                            rotate([36, 0, 0])
+                            difference()
+                            {
+                                roundedcube([vent_side_length, vent_side_length, vent_height], 0.6);
+                                translate([0, 0, -1])
+                                roundedcube([vent_side_length-2, vent_side_length-2, vent_height-1], 0.6);
+                            }
+                        }        
+                    }
                 }
                 
                 union()
@@ -184,21 +208,43 @@ module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickn
                     if( ventilation )
                     {
                         num_vents = 6;
+                        vent_side_length = 30;
+                        vent_height = 50;
+//                        _z_translation = 38;
                         
                         for( angle = [ 0 : 360/num_vents : 360 ] )
                         {
                             rotate([0, 0, angle])
-                            translate([0, radius - 5, 30])
-                            for( x_translation = [-10 : 2 : 10] )
+                            translate([0, radius - 10, 40])
+                            rotate([15, 0, 0])
+                            for( x_translation = [-13 : 2 : 13] )
                             {
-                                for( z_translation = [-10 : 2 : 10] )
+                                for( z_translation = [-11 : 2 : 17] )
                                 {
                                     translate([x_translation, 0, z_translation])
-                                    cube([1.5, 20, 1.5], center=true);
+                                    cube([1.5, 5, 1.5], center=true);
                                 }
-                            }
+                            }                            
                         }        
                     }                    
+//                    if( ventilation )
+//                    {
+//                        num_vents = 6;
+//                        
+//                        for( angle = [ 0 : 360/num_vents : 360 ] )
+//                        {
+//                            rotate([0, 0, angle])
+//                            translate([0, radius - 20, 30])
+//                            for( x_translation = [-13 : 2 : 13] )
+//                            {
+//                                for( z_translation = [-15 : 2 : 17] )
+//                                {
+//                                    translate([x_translation, 0, z_translation + 10])
+//                                    cube([1.5, 20, 1.5], center=true);
+//                                }
+//                            }
+//                        }        
+//                    }
                 }
             }
         }
@@ -228,8 +274,8 @@ module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickn
         }
     }
     
-//    translate([radius-1.56, 0, 0])
-//    cube([2, 10, 5], center=true);
+    
+
     
     if( locking_clips )
     {
