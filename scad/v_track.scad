@@ -34,7 +34,6 @@ module tolerant_isosceles_triangle(base_length, theta, tolerance)
     }
 }
 
-
 module v_track_male_cross_section(base_length=15, theta=75, depth=3, tolerance=0.1)
 {
     // do not multiply tolerance
