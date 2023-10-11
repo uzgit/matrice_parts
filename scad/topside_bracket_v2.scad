@@ -6,6 +6,7 @@ $fn=120;
 
 screw_spacing_x = 78;
 screw_spacing_y = 66;
+alignment_peg_spacing_y = 50;
 height_forward  = 6;
 height_aft      = 2;
 height_bracket  = 6;
@@ -27,67 +28,39 @@ module base_plate_screw_head_cone()
     }
 }
 
-module main_bracket()
+// for sinking the non-sinking screw heads
+module screw_head_cylinder()
 {
-    for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
-    {
-        translate([x_translation, 0, 0])
-        union()
-        {
-            translate([0, -screw_spacing_y/2, 0])
-            difference()
-            {
-                cylinder(d=diameter_standoff,h=height_forward);
-                cylinder(d=diameter_screw_hole,h=height_forward);
-            }
-
-            translate([0, screw_spacing_y/2, 0])
-            difference()
-            {
-                cylinder(d=diameter_standoff,h=height_aft);
-                cylinder(d=diameter_screw_hole,h=height_aft);
-            }
-        }
-    }
-
-    difference()
-    {
-        translate([0, 0, -height_bracket/2])
-        cube([width_bracket_x, width_bracket_y, height_bracket ], center=true);
-        
-        union()
-        {
-//            translate([0, 0, -height_bracket/2])
-//            cube([screw_spacing_x - diameter_standoff/1.4, screw_spacing_y - diameter_standoff/1.4, height_bracket ], center=true);
-            
-            for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
-            {
-                translate([x_translation, 0, 0])
-                union()
-                {
-                    translate([0, -screw_spacing_y/2, 0])
-                    rotate([0, 180, 0])
-                        cylinder(d=diameter_screw_hole,h=height_bracket);
-
-                    translate([0, screw_spacing_y/2, 0])
-                    rotate([0, 180, 0])
-                        cylinder(d=diameter_screw_hole,h=height_bracket);
-                }
-            }
-            
-            for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
-            {
-                for( y_translation = [-screw_spacing_y/2, screw_spacing_y/2] )
-                {
-                    translate([x_translation, y_translation, -height_bracket])
-                    base_plate_screw_head_cone();
-                }
-            }
-        }
-    }
+    screw_head_depth = 2.5;
+    screw_head_diameter = 6;
+    
+    translate([0, 0, 0])
+    cylinder(h=screw_head_depth, d=screw_head_diameter);
 }
 
-length=87.5;
+module large_screw_head_cylinder()
+{
+    screw_head_depth = 4.5;
+    screw_head_diameter = 6;
+    
+    translate([0, 0, 0])
+    cylinder(h=screw_head_depth, d=screw_head_diameter);
+}
+
+alignment_peg_depth    = 10;
+alignment_peg_diameter =  6;
+module alignment_peg()
+{
+    cylinder(h=alignment_peg_depth, d=alignment_peg_diameter, center=true);
+}
+
+//module alignment_peg_hole()
+//{
+//    cylinder(h=alignment_peg_depth/2, d=alignment_peg_diameter, center=true);
+//}
+
+length=77.5;
+//length=87.5;
 tolerance=0.1;
 base_length=17.5;
 theta=65;
@@ -99,7 +72,8 @@ width_backstop_y = 10;
 spacing_track_x = 40;
 threaded_insert_translation_y = -30;
 
-topside_bracket_extra_height = 4;
+topside_bracket_extension_height = 6;
+topside_bracket_extra_height = 9;
 topside_bracket_width = 30;
 
 clip_width = 7;
@@ -159,7 +133,8 @@ module half_droneside_bracket_v2(tolerance=tolerance)
             for( y_translation = [-screw_spacing_y/2, screw_spacing_y/2] )
             {
                 translate([0, y_translation, 0])
-                base_plate_screw_head_cone();
+//                base_plate_screw_head_cone();
+                screw_head_cylinder();
             }
         }
     }
@@ -174,7 +149,7 @@ module droneside_bracket_v2(tolerance=tolerance)
     }
 }
 
-module half_topside_bracket_v2(tolerance=tolerance)
+module half_topside_bracket_v2(tolerance=tolerance, portside_clip=true, starboard_clip=true)
 {
     clip_overhang_y = 10;
 
@@ -215,21 +190,56 @@ module half_topside_bracket_v2(tolerance=tolerance)
                         p1 = [ topside_bracket_width/2 - clip_overhang_x, length/2];
                         p2 = [-topside_bracket_width/2 + clip_overhang_x, length/2];
                         p3 = [-topside_bracket_width/2 - 2, length/2 + clip_overhang_y + clip_spacing_y];
-                        p4 = [ topside_bracket_width/2 + 2, length/2 + clip_overhang_y +clip_spacing_y];
-                        translate([0, 0, -5])
+                        p4 = [ topside_bracket_width/2 + 2, length/2 + clip_overhang_y + clip_spacing_y];
+                        translate([0, 0, -total_height/2])
                         linear_extrude(total_height)
                         polygon([p1, p2, p3, p4]);
+                        
+                        // remove clips if they are not wanted
+                        x_translation = topside_bracket_width/2 + clip_spacing_x + clip_width/2;
+                        // remove portside clip
+                        if( ! portside_clip )
+                        {
+                            translate([x_translation, 0, 0])
+                            cube([clip_width, length, total_height], true);
+                            
+                            translate([x_translation, length/2 + clip_overhang_y/2 + clip_spacing_y/2, 0])
+                            cube([2*clip_width + clip_overhang_x, clip_overhang_y + clip_spacing_y, total_height], true);
+                        }
+                        // remove starboard clip
+                        if( ! starboard_clip )
+                        {
+                            translate([-x_translation, 0, 0])
+                            cube([clip_width, length, total_height], true);
+                            
+                            translate([-x_translation, length/2 + clip_overhang_y/2 + clip_spacing_y/2, 0])
+                            cube([2*clip_width + clip_overhang_x, clip_overhang_y + clip_spacing_y, total_height], true);
+                        }
                     }
                 }
                 
-                // reattach arms to main bracket
-                _x_translation = topside_bracket_width/2 + clip_spacing_x/2;
-                translate([0, -length/2 + clip_attachment_length/2, 0])
-                for( x_translation = [-_x_translation, _x_translation] )
+                x_translation = topside_bracket_width/2 + clip_spacing_x/2;
+                if( portside_clip )
                 {
+                    translate([0, -length/2 + clip_attachment_length/2, 0])
                     translate([x_translation, 0, 0])
                     cube([clip_spacing_x, clip_attachment_length, total_height], true);
                 }
+                if( starboard_clip )
+                {
+                    translate([0, -length/2 + clip_attachment_length/2, 0])
+                    translate([-x_translation, 0, 0])
+                    cube([clip_spacing_x, clip_attachment_length, total_height], true);
+                }
+                
+//                // reattach arms to main bracket
+//                _x_translation = topside_bracket_width/2 + clip_spacing_x/2;
+//                translate([0, -length/2 + clip_attachment_length/2, 0])
+//                for( x_translation = [-_x_translation, _x_translation] )
+//                {
+//                    translate([x_translation, 0, 0])
+//                    cube([clip_spacing_x, clip_attachment_length, total_height], true);
+//                }
             }
 
         }
@@ -240,12 +250,21 @@ module half_topside_bracket_v2(tolerance=tolerance)
                 // screw head cones
                 translate([0, y_translation, 0])
                 rotate([0, 180, 0])
-                base_plate_screw_head_cone();
+//                base_plate_screw_head_cone();
+                large_screw_head_cylinder();
                 
                 // screw hole voids
                 translate([0, y_translation, -topside_bracket_extra_height + 0])
                 cylinder(d=diameter_screw_hole,h=topside_bracket_extension_height);
-            }
+            }       
+            
+            // alignment pegs
+            for( y_translation = [-alignment_peg_spacing_y/2, alignment_peg_spacing_y/2] )
+            {
+                translate([0, y_translation, -topside_bracket_extra_height + 0])
+                rotate([0, 180, 0])
+                alignment_peg();
+            }     
             
             // back stop void
             translate([0, length/2 - width_backstop_y/2, height/2])
@@ -263,13 +282,46 @@ module topside_bracket_v2(tolerance=tolerance)
     }
 }
 
-topside_bracket_extension_height = 6;
 
-//translate([0, 0, 10])
-//droneside_bracket_v2();
+
+
+final_tolerance = 0.05;
+//translate([0, 0, 0])
+//droneside_bracket_v2(tolerance=final_tolerance);
 //
 //translate([0, 0, 0])
-//topside_bracket_v2();
+//topside_bracket_v2(tolerance=final_tolerance);
 
+// all parts for printing:
+translate([0, 0, 0])
+half_droneside_bracket_v2(tolerance=final_tolerance);
 
-half_droneside_bracket_v2();
+translate([35, 0, 0])
+half_droneside_bracket_v2(tolerance=final_tolerance);
+
+translate([80, 0, topside_bracket_extra_height])
+half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
+
+translate([120, 0, topside_bracket_extra_height])
+half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=true, starboard_clip=false);
+
+translate([40, -50, 0])
+for( translation = [0, 10, 20, 30] )
+{
+    translate([translation, 0, alignment_peg_depth/2])
+    alignment_peg();
+}
+
+//union()
+//{
+//    alignment_peg();
+//    
+//    translate([0, 10, 0])
+//    alignment_peg();
+//    
+//    translate([0, 20, 0])
+//    alignment_peg();
+//    
+//    translate([0, 30, 0])
+//    alignment_peg();
+//}
