@@ -296,13 +296,13 @@ final_tolerance = 0.05;
 translate([0, 0, 0])
 half_droneside_bracket_v2(tolerance=final_tolerance);
 
-translate([35, 0, 0])
+translate([33, 0, 0])
 half_droneside_bracket_v2(tolerance=final_tolerance);
 
-translate([80, 0, topside_bracket_extra_height])
+translate([74, 0, topside_bracket_extra_height])
 half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
 
-translate([120, 0, topside_bracket_extra_height])
+translate([108, 0, topside_bracket_extra_height])
 half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=true, starboard_clip=false);
 
 translate([40, -50, 0])

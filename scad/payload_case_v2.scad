@@ -6,6 +6,14 @@ $fn=20;
 screw_spacing_x = 78;
 screw_spacing_y = 66;
 
+alignment_peg_spacing_y = 50;
+alignment_peg_depth     = 10;
+alignment_peg_diameter  =  6;
+module alignment_peg()
+{
+    cylinder(h=alignment_peg_depth, d=alignment_peg_diameter, center=true);
+}
+
 module dodecagon_rotated(radius, rotation=15)
 {
     rotate([0, 0, rotation])
@@ -85,6 +93,12 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
                         translate([0, 0, 1.5]) // to reverse the direction without the rotation command
                         cylinder(d=4, h=4.5);
                     }
+                }
+                
+                for( y_translation=[-alignment_peg_spacing_y/2, alignment_peg_spacing_y/2] )
+                {
+                    translate([x_translation, y_translation, 0])
+                    alignment_peg();
                 }
             }
             
@@ -437,7 +451,7 @@ module component_mounting_plate_jetson_nano(height=5)
 
 base_plate(radius=75, wall_height=5);
 
-translate([0, 0, 60])
+//translate([0, 0, 60])
 //translate([0, 0, 11])
-top(radius=75, height=60);
+//top(radius=75, height=60);
 
