@@ -1,10 +1,17 @@
 include <../library/regular_shapes.scad>
 include <../library/boxes.scad>
 include <../library/roundedcube.scad>
+include <../library/honeycomb.scad>
 
-$fn=20;
+$fn=120;
 screw_spacing_x = 78;
 screw_spacing_y = 66;
+
+fan_side   = 40;
+fan_screw  = 32;
+fan_height = 20;
+fan_honeycomb_height = 2;
+fan_diameter = 38;
 
 alignment_peg_spacing_y = 50;
 alignment_peg_depth     = 10;
@@ -128,8 +135,19 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
                     }
                 }
             }
+            
+            translate([0, 0, fan_height/2 + fan_honeycomb_height])
+//            cube([fan_side, fan_side, fan_height], true);
+            roundedCube([fan_side, fan_side, fan_height], center=true, 3, "z");
+            
+            cylinder(d=fan_diameter, h=fan_honeycomb_height);
         }
     }
+    translate([-fan_side/2, -fan_side/2, 0])
+    linear_extrude(fan_honeycomb_height) {
+        honeycomb(fan_side, fan_side, 5, 0.5);
+    }
+    
     
     if( locking_screws )
     {
@@ -450,6 +468,11 @@ module component_mounting_plate_jetson_nano(height=5)
 //component_mounting_plate_jetson_nano();
 
 base_plate(radius=75, wall_height=5);
+
+//translate([0, 0, 30])
+//linear_extrude(10) {
+//	honeycomb(100, 80, 5, 1);
+//}
 
 //translate([0, 0, 60])
 //translate([0, 0, 11])
