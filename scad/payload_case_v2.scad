@@ -1,93 +1,152 @@
-include <../library/regular_shapes.scad>
 include <../library/boxes.scad>
 include <../library/roundedcube.scad>
 include <../library/honeycomb.scad>
 
-$fn=120;
+$fn=60;
+
+radius = 145/2;
+top_radius = radius / 1.2;
+
+wall_thickness = 3;
+wall_height = 5;
+edge_thickness = 1.8;
+edge_height=9;
+canopy_height = 90;
+locking_screws = true;
+num_lock_blocks = 3;
+locking_screw_angles = [ 0 : 360/num_lock_blocks : 359 ];
+lock_block_x = 10;
+lock_block_y = 10;
+lock_block_z = 6;
+//lock_block_translation_x = radius - 
+canopy_height = 65;
+canopy_top_thickness = 3;
+ventilation = true;
+ventilation_height = 4;
+ventilation_width  = 20;
+ventilation_depth  = radius;
+ventilation_honeycomb_depth = 42;
+ventilation_honeycomb_center_translation = 18;
+
 screw_spacing_x = 78;
 screw_spacing_y = 66;
 
 fan_side   = 40;
-fan_screw  = 32;
+fan_screw_xy  = 32;
+fan_screw_diameter = 4.5;
 fan_height = 20;
-fan_honeycomb_height = 2;
+fan_honeycomb_thickness = 2;
 fan_diameter = 38;
+fan_cage_height = 25; // height from bottom of case, not bottom of fan
+fan_cage_side = 50;
+fan_cage_wall_thickness = 5;
+fan_cage_honeycomb_diameter = 5;
+fan_cage_honeycomb_thickness = 0.75;
+fan_cage_top_support_thickness = 3;
 
 alignment_peg_spacing_y = 50;
 alignment_peg_depth     = 10;
 alignment_peg_diameter  =  6;
+
+vertical_structural_support_x = 10;
+vertical_structural_support_y = screw_spacing_y + 20;
+horizontal_structural_support_y = 55;
+
+vent_honeycomb_height = 15;
+vent_honeycomb_side = 35;
+vent_honeycomb_depth = 10;
+vent_honeycomb_diameter = 1;
+vent_honeycomb_thickness = 0.2;
+
+module fan()
+{
+    roundedCube([fan_side, fan_side, fan_height], center=true, 3, "z");
+}
+
 module alignment_peg()
 {
     cylinder(h=alignment_peg_depth, d=alignment_peg_diameter, center=true);
 }
 
-module dodecagon_rotated(radius, rotation=15)
+module regular_polygon(sides, apothem)
 {
-    rotate([0, 0, rotation])
-    dodecagon(radius);
-}
+  phi = 90 - 90*(sides-2)/sides;
+  radius = apothem / cos(phi);
 
-module dodecagon_prism_rotated(height, radius, rotation=15)
-{
-    rotate([0, 0, rotation])
-    dodecagon_prism(height, radius);
-}
-
-module supports(height=6, holes=true)
-{
-    width = 10;
-//    height = 6;
-    _x_translation = 55/2;
-    _y_translation = 55/2;
-    x_offset = 0;
+  function dia(r) = sqrt(pow(r*2,2)/2);  //sqrt((r*2^2)/2) if only we had an exponention op
+  if(sides<2) square([radius,0]);
+  if(sides==3) triangle(radius);
+  if(sides==4) square([dia(radius),dia(radius)],center=true);
+  if(sides>4) {
+    angles=[ for (i = [0:sides-1]) i*(360/sides) ];
+    coords=[ for (th=angles) [radius*cos(th), radius*sin(th)] ];
     
-    translate([x_offset, 0, 0])
-    for( x_translation = [-_x_translation, _x_translation] )
+    angle = 90*(sides-2)/sides;
+    rotate([0, 0, phi])
+    polygon(coords);
+  }
+}
+
+module dodecagon_prism(height, radius)
+{
+    linear_extrude(height)
     {
-        for( y_translation = [-_y_translation, _y_translation] )
-        {
-            translate([x_translation - width/2, y_translation -width/2, 0])
-            difference()
-            {
-                cube([width, width, height]);
-                
-                if(holes)
-                {
-                    translate([width/2, width/2, height-6])
-                    cylinder(d=4, h=6);
-                }
-            }
-        }
+        regular_polygon(12, radius);
     }
 }
 
-module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35, wall_thickness=3, edge_thickness=1.3, edge_height=7, locking_screws=true )
+module everything()
+{
+    cube([10000, 10000, 10000], center=true);
+}
+
+module base_plate( thickness=6, bottom_thickness=3, wall_thickness=3, edge_thickness=1.3, locking_screws=true )
 {
     difference()
     {
+        // primary positive space
         union()
         {
-            dodecagon_prism_rotated(height=thickness, radius=radius);
+            // bottom
+            dodecagon_prism(height=bottom_thickness, radius=radius);
             
             // wall
-            translate([0, 0, thickness])
+            translate([0, 0, bottom_thickness])
             difference()
             {
-                dodecagon_prism_rotated(height=wall_height, radius=radius);
-                dodecagon_prism_rotated(height=wall_height, radius=radius-wall_thickness);
+                dodecagon_prism(height=thickness+wall_height, radius=radius);
+                dodecagon_prism(height=thickness+wall_height, radius=radius-wall_thickness);
             }
-            
-            translate([0, 0, thickness])
-            supports();
             
             // edge
             translate([0, 0, thickness+wall_height])
             difference()
             {
-                dodecagon_prism_rotated(height=edge_height, radius=radius-wall_thickness+edge_thickness);
-                dodecagon_prism_rotated(height=edge_height, radius=radius-wall_thickness);
+                dodecagon_prism(height=edge_height, radius=radius-wall_thickness+edge_thickness);
+                dodecagon_prism(height=edge_height, radius=radius-wall_thickness);
+            }
+            
+            // structural supports
+            for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
+            {
+                translate([x_translation, 0, bottom_thickness + (thickness-bottom_thickness)/2])
+                cube([vertical_structural_support_x, vertical_structural_support_y, thickness-bottom_thickness], center=true);
+            }
+            
+            translate([0, 0, bottom_thickness + (thickness-bottom_thickness)/2])
+            cube([screw_spacing_x, horizontal_structural_support_y, thickness-bottom_thickness], center=true);
+            
+            if( locking_screws )
+            {
+//                for( angle = locking_screw_angles )
+//                {   
+//                    rotate([0, 0, angle])
+//                    translate([radius - lock_block_y, 0, lock_block_z/2])
+//                    cube([lock_block_x, lock_block_y, lock_block_z], center=true);
+//                }
             }
         }
+        // negative space
         union()
         {
             for( x_translation=[-screw_spacing_x/2, screw_spacing_x/2] )
@@ -96,7 +155,7 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
                 {
                     translate([x_translation, y_translation, 0])
                     {
-                        cylinder(d=3.2, h=6);
+                        cylinder(d=3.75, h=6);
                         translate([0, 0, 1.5]) // to reverse the direction without the rotation command
                         cylinder(d=4, h=4.5);
                     }
@@ -109,372 +168,285 @@ module base_plate( thickness=6, bottom_thickness=4, radius=205/2, wall_height=35
                 }
             }
             
-            translate([0, -radius + 5, bottom_thickness + 9])
-            cube([4, 10, 12], center=true);
+            // e port cable slot
+            translate([0, -radius, bottom_thickness + 13])
+            roundedCube([4, 20, 14], 2, center=true);
             
             if( locking_screws )
             {
-                num = 3;
-                
-                lock_x = 35;
-                lock_y = 7;
-                lock_z = 25;
-                
-                for( angle = [ 0 : 360/num : 360 ] )
+//                num = 3;
+//                
+//                lock_x = 35;
+//                lock_y = 7;
+//                lock_z = 25;
+//                
+//                for( angle = [ 0 : 360/num : 360 ] )
+//                {
+//                    rotate([0, 0, angle])
+//                    translate([0, radius, 22])
+//                    cube([36, 30, 15], center=true);
+//                }
+            }
+            
+            // fan void
+            translate([0, 0, fan_height/2 + fan_honeycomb_thickness])
+            roundedCube([fan_side, fan_side, fan_height], center=true, 3, "z");
+            
+            // fan exhaust void
+            cylinder(d=fan_diameter, h=bottom_thickness);
+            
+            for( x_translation = [-fan_screw_xy/2, fan_screw_xy/2] )
+            {
+                for( y_translation = [-fan_screw_xy/2, fan_screw_xy/2] )
                 {
-                    rotate([0, 0, angle])
-                    translate([0, radius+0.943, 0])
-                    difference()
-                    {
-                        for(x_translation = [-10, 10])
-                        {
-                            translate([x_translation, -10, 15])
-                            rotate([90, 0, 180])
-                            cylinder(d=3.2, h=20);
-                        }
-                    }
+                    translate([x_translation, y_translation, 0])
+                    cylinder(d=fan_screw_diameter, h=bottom_thickness);
+                }
+            }
+        }
+    }
+    // secondary positive space
+    union()
+    {
+        // fan honeycomb without intersecting fan screw holes
+        difference()
+        {
+            // fan honeycomb
+            translate([-fan_side/2, -fan_side/2, 0])
+            linear_extrude(fan_honeycomb_thickness) {
+                honeycomb(fan_side, fan_side, 5, 0.5);
+            }
+            
+            // remove everything outside of the fan exhaust void
+            difference()
+            {
+                everything();
+                // fan exhaust void
+                cylinder(d=fan_diameter, h=bottom_thickness);
+            }
+        }
+        
+        // fan honeycomb cage
+        translate([0, 0, fan_cage_height/2 + thickness])
+        union()
+        {
+            // left vertical wall
+            translate([-fan_cage_side/2, 0, 0])
+            rotate([0, 90, 0])
+            translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
+            linear_extrude(fan_cage_wall_thickness) {
+                honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
+            }
+            
+            // right vertical wall
+            translate([fan_cage_side/2, 0, 0])
+            rotate([0, 90, 0])
+            translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
+            linear_extrude(fan_cage_wall_thickness) {
+                honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
+            }
+            
+            // top horizontal wall
+            translate([0, fan_cage_side/2, 0])
+            rotate([0, 90, 90])
+            translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
+            linear_extrude(fan_cage_wall_thickness) {
+                honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
+            }
+            
+            // bottom horizontal wall
+            translate([0, -fan_cage_side/2, 0])
+            rotate([0, 90, 90])
+            translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
+            linear_extrude(fan_cage_wall_thickness) {
+                honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
+            }
+            
+            // corner posts
+            for( x_translation = [-fan_cage_side/2, fan_cage_side/2] )
+            {
+                for( y_translation = [-fan_cage_side/2, fan_cage_side/2] )
+                {
+                    translate([x_translation, y_translation, 0])
+                    cylinder(d=fan_cage_wall_thickness, h=fan_cage_height, center=true);
                 }
             }
             
-            translate([0, 0, fan_height/2 + fan_honeycomb_height])
-//            cube([fan_side, fan_side, fan_height], true);
-            roundedCube([fan_side, fan_side, fan_height], center=true, 3, "z");
-            
-            cylinder(d=fan_diameter, h=fan_honeycomb_height);
+            // top braces
+            for( x_translation = [-fan_cage_side/2, fan_cage_side/2] )
+            {
+                translate([x_translation, 0, fan_cage_height/2 - fan_cage_top_support_thickness/2])
+                cube([fan_cage_wall_thickness, fan_cage_side, fan_cage_top_support_thickness], center=true);
+            }
+            for( y_translation = [-fan_cage_side/2, fan_cage_side/2] )
+            {
+                translate([0, y_translation, fan_cage_height/2 - fan_cage_top_support_thickness/2])
+                cube([fan_cage_side, fan_cage_wall_thickness, fan_cage_top_support_thickness], center=true);
+            }
         }
+        
+//        translate([0, 0, fan_height/2 + bottom_thickness])
+//        fan();
     }
-    translate([-fan_side/2, -fan_side/2, 0])
-    linear_extrude(fan_honeycomb_height) {
-        honeycomb(fan_side, fan_side, 5, 0.5);
-    }
-    
     
     if( locking_screws )
     {
-        num = 3;
-        
-        lock_x = 35;
-        lock_y = 7;
-        lock_z = 22.5;
-        
-        for( angle = [ 0 : 360/num : 360 ] )
-        {
-            rotate([0, 0, angle])
-            translate([0, radius+0.943, 0])
-            difference()
-            {
-                translate([-lock_x/2, -lock_y/2, 0])
-                cube([lock_x, lock_y, lock_z]);
-                for(x_translation = [-10, 10])
-                {
-                    translate([x_translation, -10, 15])
-                    rotate([90, 0, 180])
-                    cylinder(d=4, h=20);
-                }
-            }
-        }
+//        num = 3;
+//        
+//        lock_x = 35;
+//        lock_y = 7;
+//        lock_z = 29;
+//        
+//        for( angle = [ 0 : 360/num : 360 ] )
+//        {
+//            rotate([0, 0, angle])
+//            translate([0, radius, 0])
+//            difference()
+//            {
+//                translate([-lock_x/2, 0, 0])
+//                cube([lock_x, lock_y, lock_z]);
+//                for(x_translation = [-10, 10])
+//                {
+//                    translate([x_translation, -10, 20])
+//                    rotate([90, 0, 180])
+//                    cylinder(d=4, h=20);
+//                }
+//            }
+//        }
     }
 }
 
-module top(radius=205/2, height=90, wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=7, locking_clips=false, locking_screws=true, ventilation=false )
+//module top()
+//{
+//    dodecagon_prism(height=wall_thickness, radius=top_radius);
+//
+//    num = 12;
+//    for( angle = [ 0 : 360/num : 360 ] )
+//    {
+//        rotate([0, 0, angle])
+//        difference()
+//        {
+//            translate([0, 0, wall_thickness/2 + vent_honeycomb_height/2])
+//            rotate([0, 90, 90])
+//            translate([-vent_honeycomb_height/2, -vent_honeycomb_side/2, top_radius - vent_honeycomb_depth/2])
+//            linear_extrude(vent_honeycomb_depth) {
+//                honeycomb(vent_honeycomb_height, vent_honeycomb_side, vent_honeycomb_diameter, vent_honeycomb_thickness);
+//            }
+//        }
+//    }
+//}
+
+//module top(wall_thickness=3, wall_height=5, edge_thickness=1.8, edge_height=7, locking_clips=false, locking_screws=true, ventilation=false )
+module top()
 {
     difference()
     {
+        // primary positive space
         union()
         {
-            // edge
+            // bottom edge
             difference()
             {
-                dodecagon_prism_rotated(height=edge_height, radius=radius);
-                dodecagon_prism_rotated(height=edge_height, radius=radius-(wall_thickness-edge_thickness));
+                dodecagon_prism(height=edge_height, radius=radius);
+                dodecagon_prism(height=edge_height, radius=radius-(wall_thickness-edge_thickness));
             }
             
             // main canopy
             difference()
             {
-                union()
+                hull()
                 {
-                    hull()
-                    {
-                        // wall
-                        translate([0, 0, edge_height])
-                        dodecagon_prism_rotated(height=wall_height, radius=radius);
-                        
-                        translate([0, 0, edge_height - wall_height + height])
-                        dodecagon_prism_rotated(height=wall_height, radius=radius/1.2);
-                    }
-                    if( ventilation )
-                    {
-                        num_vents = 6;
-                        vent_side_length = 30;
-                        vent_height = 50;
-                        _z_translation = 38;
-                        
-                        for( angle = [ 0 : 360/num_vents : 360 ] )
-                        {
-                            rotate([0, 0, angle])
-                            translate([0, radius - 15, _z_translation])
-                            rotate([36, 0, 0])
-                            difference()
-                            {
-                                roundedcube([vent_side_length, vent_side_length, vent_height], 0.6);
-                                translate([0, 0, -1])
-                                roundedcube([vent_side_length-2, vent_side_length-2, vent_height-1], 0.6);
-                            }
-                        }        
-                    }
+                    // wall
+                    translate([0, 0, edge_height])
+                    dodecagon_prism(height=wall_height, radius=radius);
+                    
+                    translate([0, 0, edge_height - wall_height + canopy_height])
+                    dodecagon_prism(height=wall_height, radius=top_radius);
                 }
-                
-                union()
+                hull()
                 {
-                    hull()
-                    {
-                        // wall
-                        translate([0, 0, edge_height])
-                        dodecagon_prism_rotated(height=wall_height, radius=radius-wall_thickness);
-                        
-                        translate([0, 0, edge_height - wall_height + height])
-                        dodecagon_prism_rotated(height=wall_height-wall_thickness, radius=(radius/1.2)-wall_thickness);
-                                                
-                    }
-                    if( ventilation )
-                    {
-                        num_vents = 6;
-                        vent_side_length = 30;
-                        vent_height = 50;
-//                        _z_translation = 38;
-                        
-                        for( angle = [ 0 : 360/num_vents : 360 ] )
-                        {
-                            rotate([0, 0, angle])
-                            translate([0, radius - 10, 40])
-                            rotate([15, 0, 0])
-                            for( x_translation = [-13 : 2 : 13] )
-                            {
-                                for( z_translation = [-11 : 2 : 17] )
-                                {
-                                    translate([x_translation, 0, z_translation])
-                                    cube([1.5, 5, 1.5], center=true);
-                                }
-                            }                            
-                        }        
-                    }                    
-//                    if( ventilation )
-//                    {
-//                        num_vents = 6;
-//                        
-//                        for( angle = [ 0 : 360/num_vents : 360 ] )
-//                        {
-//                            rotate([0, 0, angle])
-//                            translate([0, radius - 20, 30])
-//                            for( x_translation = [-13 : 2 : 13] )
-//                            {
-//                                for( z_translation = [-15 : 2 : 17] )
-//                                {
-//                                    translate([x_translation, 0, z_translation + 10])
-//                                    cube([1.5, 20, 1.5], center=true);
-//                                }
-//                            }
-//                        }        
-//                    }
+                    // wall
+                    translate([0, 0, edge_height])
+                    dodecagon_prism(height=wall_height, radius=radius-wall_thickness);
+                    
+                    translate([0, 0, edge_height - wall_height + canopy_height - canopy_top_thickness])
+                    dodecagon_prism(height=wall_height-wall_thickness, radius=top_radius-wall_thickness);
                 }
             }
         }
-        
-        if( locking_screws )
+        union()
         {
-            num = 3;
-            
-            lock_x = 35;
-            lock_y = 7;
-            lock_z = 25;
-            
-            for( angle = [ 0 : 360/num : 360 ] )
+            if( ventilation )
             {
-                rotate([0, 0, angle])
-                translate([0, radius+0.943, 0])
-                difference()
+                num = 6;
+                
+                for( angle = [ 0 : 360/num : 359 ] )
                 {
-                    for(x_translation = [-10, 10])
+                    rotate([0, 0, angle])
+                    translate([0, top_radius/2, canopy_height + canopy_top_thickness + edge_height - 6])
+                    union()
                     {
-                        translate([x_translation, -10, 4])
                         rotate([90, 0, 180])
-                        cylinder(d=3.2, h=20);
+                        roundedCube([ventilation_width, ventilation_height, ventilation_depth], 1, "xy", center=true);
                     }
                 }
+                
+                translate([0, 0, canopy_height + edge_height - 7])
+                cylinder(d=30, h=5, center=true);
+            }
+            
+            if( locking_screws )
+            {
+//                num = 3;
+//                
+//                lock_x = 35;
+//                lock_y = 7;
+//                lock_z = 25;
+//                
+//                for( angle = [ 0 : 360/num : 359 ] )
+//                {
+//                    rotate([0, 0, angle])
+//                    translate([0, radius, 6])
+//                    difference()
+//                    {
+//                        for(x_translation = [-10, 10])
+//                        {
+//                            translate([x_translation, 0, 0])
+//                            rotate([90, 0, 180])
+//                            cylinder(d=3.2, h=wall_thickness, center=true);
+//                        }
+//                    }
+//                }
             }
         }
     }
     
-    
-
-    
-    if( locking_clips )
+    if( ventilation )
     {
-        num_clips = 3;
+        num = 6;
         
-        for( angle = [ 0 : 360/num_clips : 360 ] )
+        for( angle = [ 0 : 360/num : 359 ] )
         {
-            angle = angle + 90;
-            
-            // thickness of the bottom plate that the top mounts onto
-            base_plate_thickness = 11;
-            
-            clip_x = 2;
-            clip_y = 20;
-            clip_z = edge_height*2 + base_plate_thickness;
-            
-            clip_overhang_radial = 3;
-            clip_overhang_z = 10;
-            
             rotate([0, 0, angle])
-//            translate([radius-0.59, 0, 0])
-            translate([radius-0.56, 0, 0])
-            translate([-clip_x, clip_y/2, edge_height*2]) // i cannot derive the x offset sadly
-            rotate([180, 0, 0])
+            translate([0, ventilation_honeycomb_center_translation, canopy_height + canopy_top_thickness + edge_height - 6])
             union()
             {
-                union()
-                {
-                    cube([clip_x, clip_y, clip_z]);
-                }
-                
-                translate([0, 0, clip_z + clip_overhang_z])
-                rotate([0, 180, 0])
-                difference()
-                {
-                    union()
-                    {
-                        translate([-2, 0, 0])
-                        cube([clip_overhang_radial*2, clip_y, clip_overhang_z]);
-                    }
-                    translate([-2, 0, -0.5])
-                    rotate([0, 45, 0])
-                    cube([10, clip_y, 10]);
+                rotate([0, 90, 90])
+                translate([-ventilation_height/2, -ventilation_width/2, 0])
+                linear_extrude(ventilation_honeycomb_depth) {
+                    honeycomb(ventilation_height, ventilation_width, vent_honeycomb_diameter, vent_honeycomb_thickness);
                 }
             }
         }
     }
 }
 
-module component_mounting_plate_rpi(side_length=70, height=6)
-{
-//    side_length = 50;
-    
-    difference()
-    {
-        union()
-        {
-            translate([0, 0, height/2])
-            cube([side_length, side_length, height], center=true);
-        }
-        
-        width = 10;
-        support_hole_height = 3;
-        _x_translation = 55/2;
-        _y_translation = 55/2;
-        x_offset = 0;
-        
-        union()
-        {
-            translate([x_offset, 0, 0])
-            for( x_translation = [-_x_translation, _x_translation] )
-            {
-                for( y_translation = [-_y_translation, _y_translation] )
-                {
-                    translate([x_translation - width/2, y_translation -width/2, 0])
-                    cube([width, width, support_hole_height]);
-                }
-            }
-            
-            translate([width/2, width/2, 0])
-            for( x_translation = [-_x_translation, _x_translation] )
-            {
-                for( y_translation = [-_y_translation, _y_translation] )
-                {
-                    translate([x_translation - width/2, y_translation -width/2, 0])
-                    cylinder(d=4,h=20);
-//                    cube([width, width, support_hole_height]);
-                }
-            }
-        }
-    }
-}
+//rotate([0, 0, 15])
+//my_regular_polygon(12, 100);
 
-module component_mounting_plate_jetson_nano(height=5)
-{
-    plate_screw_x_offset = 3;
-    plate_screw_y_offset = 17;
-    plate_screw_translation = 55/2;
-    support_hole_width = 10;
-    support_hole_height = 3;
-    
-    jetson_screw_x_translation = 86;
-    jetson_screw_y_translation = 58;
-    jetson_standoff_height = 3;
-    
-    tolerance = 4;
-    
-    difference()
-    {
-        union()
-        {
-            translate([-jetson_screw_x_translation/2 - tolerance, -jetson_screw_y_translation/2 - plate_screw_y_offset -tolerance, 0])
-            cube([jetson_screw_x_translation + tolerance*2, jetson_screw_y_translation + plate_screw_y_offset + tolerance*2, height]);
-            
-            
-            for(x_translation = [-jetson_screw_x_translation/2, jetson_screw_x_translation/2])
-            {
-                for(y_translation = [-jetson_screw_y_translation/2, jetson_screw_y_translation/2])
-                {
-                    translate([x_translation, y_translation, height])
-                    difference()
-                    {
-                        cylinder(d=4,h=jetson_standoff_height);
-                        cylinder(d=1.75,h=jetson_standoff_height);
-                    }
-                }
-            }            
-        }        
-        union()
-        {
-            for(x_translation = [-plate_screw_translation, plate_screw_translation])
-            {
-                for(y_translation = [-plate_screw_translation, plate_screw_translation])
-                {
-                    translate([x_translation + plate_screw_x_offset, y_translation - plate_screw_y_offset, 0])
-                    union()
-                    {
-                        cylinder(d=4,h=20);
-                        cube([support_hole_width, support_hole_width, support_hole_height], center=true);
-                    }
-                }
-            }
-            
-            for(x_translation = [-jetson_screw_x_translation/2, jetson_screw_x_translation/2])
-            {
-                for(y_translation = [-jetson_screw_y_translation/2, jetson_screw_y_translation/2])
-                {
-                    translate([x_translation, y_translation, 0])
-                    cylinder(d=1.75,h=height);
-                }
-            }
-        }
-    }
-}
+base_plate();
 
-//translate([0, 0, 50])
-//component_mounting_plate_rpi();
-//component_mounting_plate_jetson_nano();
-
-base_plate(radius=75, wall_height=5);
-
-//translate([0, 0, 30])
-//linear_extrude(10) {
-//	honeycomb(100, 80, 5, 1);
-//}
-
-//translate([0, 0, 60])
-//translate([0, 0, 11])
+translate([0, 200, 0])
+//translate([0, 0, 14])
 //top(radius=75, height=60);
-
+top();
