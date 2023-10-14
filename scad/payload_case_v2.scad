@@ -102,6 +102,14 @@ module regular_polygon(sides, apothem)
   }
 }
 
+module regular_prism(sides, apothem, height)
+{
+    linear_extrude(height)
+    {
+        regular_polygon(sides, apothem);
+    }
+}
+
 module dodecagon_prism(height, radius)
 {
     linear_extrude(height)
@@ -221,8 +229,10 @@ module top()
                     }
                 }
                 
-                translate([0, 0, canopy_height + edge_height - 7])
-                cylinder(d=30, h=5, center=true);
+                translate([0, 0, canopy_height + edge_height - 6])
+                rotate([0, 0, 30])
+                regular_prism(6, 18, 5);
+//                cylinder(d=30, h=5, center=true);
             }
         }
         
@@ -497,6 +507,8 @@ module base_plate()
 //        fan();
     }
 }
+
+//regular_prism(6, 50, 10);
 
 //rotate([0, 0, 15])
 //my_regular_polygon(12, 100);
