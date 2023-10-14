@@ -31,7 +31,7 @@ module base_plate_screw_head_cone()
 // for sinking the non-sinking screw heads
 module screw_head_cylinder()
 {
-    screw_head_depth = 2.5;
+    screw_head_depth = 3.5;
     screw_head_diameter = 6;
     
     translate([0, 0, 0])
@@ -105,7 +105,12 @@ module half_droneside_bracket_v2(tolerance=tolerance)
             translate([0, -screw_spacing_y/2, height])
             difference()
             {
-                cylinder(d=diameter_standoff,h=height_forward);
+                hull()
+                {
+                    translate([0, 0, -height_forward])
+                    cylinder(d=11,h=height_forward);
+                    cylinder(d=diameter_standoff,h=height_forward);
+                }
                 cylinder(d=diameter_screw_hole,h=height_forward);
             }
             
@@ -113,7 +118,12 @@ module half_droneside_bracket_v2(tolerance=tolerance)
             translate([0, screw_spacing_y/2, height])
             difference()
             {
-                cylinder(d=diameter_standoff,h=height_aft);
+                hull()
+                {
+                    translate([0, 0, -height_aft])
+                    cylinder(d=11,h=height_aft);
+                    cylinder(d=diameter_standoff,h=height_aft);
+                }
                 cylinder(d=diameter_screw_hole,h=height_aft);
             }
         }
