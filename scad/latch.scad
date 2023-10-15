@@ -12,6 +12,8 @@ latch_axis_x = 10;
 latch_axis_y = 10;
 latch_axis_z = 10;
 
+screw_distance = 7.5;
+
 module catch()
 {
     difference()
@@ -54,9 +56,13 @@ module latch()
     }
 }
 
-// ground plane
-//translate([0, 0, -2.5])
-//cube([100, 100, 5], center=true);
+module ground_plane()
+{
+    translate([0, 0, -2.5])
+    cube([100, 100, 5], center=true);
+}
+
+ground_plane();
 
 translate([0, -plane_y/2, plane_z/2])
 latch();
