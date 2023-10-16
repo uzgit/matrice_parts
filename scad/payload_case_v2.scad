@@ -24,18 +24,17 @@ eport_cable_clearance_z = 2*(3.5 + edge_height); // below the edge, so eport_cab
 echo("eport_cable_clearance_z: ", eport_cable_clearance_z);
 eport_cable_clearance_r = 2;
 
-canopy_height = 90;
 locking_screws = true;
 num_lock_blocks = 3;
 locking_screw_angles = [ 0 : 360/num_lock_blocks : 359 ];
 canopy_lock_block_x = 30;
 canopy_lock_block_y = 6;
-canopy_lock_block_z = 25;
+canopy_lock_block_z = 35;
 bottom_lock_block_x = 30;
 bottom_lock_block_y = 10;
 bottom_lock_block_z = 25;
 //lock_block_translation_x = radius - 
-canopy_height = 65;
+canopy_height = 75;
 canopy_top_thickness = 3;
 ventilation = true;
 ventilation_height = 4;
@@ -315,10 +314,10 @@ module base_plate()
                     hull()
                     {
                         translate([0, 0, canopy_lock_block_z/2])
-                        roundedCube([canopy_lock_block_x, bottom_lock_block_y, canopy_lock_block_z], 3, center=true);
+                        roundedCube([canopy_lock_block_x, bottom_lock_block_y, bottom_lock_block_z], 3, center=true);
                         
                         translate([0, 0, 1])
-                        cube([canopy_lock_block_x, canopy_lock_block_y, 1], center=true);
+                        cube([canopy_lock_block_x, canopy_lock_block_y + 4, 1], center=true);
                     }
                 }
             }
@@ -345,7 +344,7 @@ module base_plate()
             
             // fan void
             translate([0, 0, fan_height/2 + fan_honeycomb_thickness])
-            roundedCube([fan_side+2, fan_side+2, fan_height], center=true, 3, "z");
+            roundedCube([fan_side + 1, fan_side + 1, fan_height], center=true, 3, "z");
             
             // fan exhaust void
             cylinder(d=fan_diameter, h=bottom_thickness);
@@ -367,7 +366,7 @@ module base_plate()
                 for( angle = [ 0 : 360/num : 359 ] )
                 {
                     rotate([0, 0, angle])
-                    translate([0, radius, edge_height + wall_height - 1])
+                    translate([0, radius, edge_height + wall_height +3])
                     rotate([90, 0, 0])
                     cylinder(d=3.2, h=50, center=true);
                 }
