@@ -40,7 +40,7 @@ module screw_head_cylinder()
 
 module large_screw_head_cylinder()
 {
-    screw_head_depth = 4.5;
+    screw_head_depth = 3.5;
     screw_head_diameter = 6;
     
     translate([0, 0, 0])
@@ -89,6 +89,7 @@ module half_droneside_bracket_v2(tolerance=tolerance)
         union()
         {
             // v track
+            translate([0, 0, -tolerance/4])
             v_track_male_extrusion(height=height, width=width, length=length, base_length=base_length, tolerance=tolerance, theta=theta, depth=height);
             
             // back stop
@@ -98,7 +99,7 @@ module half_droneside_bracket_v2(tolerance=tolerance)
             p4 = [-topside_bracket_width/2,             length/2];
             p5 = [-topside_bracket_width/2,             length/2 - width_backstop_y/2];
             p6 = [-base_length/2 - clip_overhang_x,     length/2 - width_backstop_y];
-            linear_extrude(height)
+            linear_extrude(height - tolerance/4)
             polygon([p1, p2, p3, p4, p5, p6]);
             
             // forward standoff
@@ -108,14 +109,14 @@ module half_droneside_bracket_v2(tolerance=tolerance)
                 hull()
                 {
                     translate([0, 0, -height_forward])
-                    cylinder(d=11,h=height_forward);
-                    cylinder(d=diameter_standoff,h=height_forward);
+                    cylinder(d=11,h=height_forward - tolerance/4);
+                    cylinder(d=diameter_standoff,h=height_forward - tolerance/4);
                 }
                 cylinder(d=diameter_screw_hole,h=height_forward);
             }
             
             // aft standoff
-            translate([0, screw_spacing_y/2, height])
+            translate([0, screw_spacing_y/2, height - tolerance/4])
             difference()
             {
                 hull()
@@ -295,7 +296,7 @@ module topside_bracket_v2(tolerance=tolerance)
 
 
 
-final_tolerance = 0.05;
+final_tolerance = 0.5;
 //translate([0, 0, 0])
 //droneside_bracket_v2(tolerance=final_tolerance);
 //
