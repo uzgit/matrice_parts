@@ -320,7 +320,7 @@ module topside_bracket_v2(tolerance=tolerance)
 
 
 
-final_tolerance = 0.3;
+final_tolerance = 0.4;
 //translate([0, 0, 0])
 //droneside_bracket_v2(tolerance=final_tolerance);
 //
