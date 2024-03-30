@@ -162,8 +162,11 @@ clip_overhang_x = 1.5;
 font_size = 3;
 
 mount_screw_x_translation = 9;
+attachment_point_width = topside_bracket_width;
+attachment_point_depth = 6;
+attachment_point_height = 10;
 
-module half_droneside_bracket_v2(tolerance=tolerance, attachment_screw_spacing=49, attachment_screw_hole_diameter=2.9, attachment_standoff_height=3.5, attachment_standoff_diameter=4.5, angle=0, attachment_screw_y_translation=0, eport=false, skyport=false, rpi=false)
+module half_droneside_bracket_v2(tolerance=tolerance, attachment_screw_spacing=49, attachment_screw_hole_diameter=2.9, attachment_standoff_height=3.5, attachment_standoff_diameter=4.5, angle=0, attachment_screw_y_translation=0, eport=false, skyport=false, rpi=false, y_offset=0)
 {
     difference()
     {
@@ -194,12 +197,14 @@ module half_droneside_bracket_v2(tolerance=tolerance, attachment_screw_spacing=4
                 eport_screw_x_translation = 50 / 2;
                 eport_screw_y_translation = 35 / 2;
                 
-                translate([0, -width_backstop_y, height/2 - tolerance/8])
+                translate([0, -width_backstop_y + y_offset, height/2 - tolerance/8])
                 difference()
                 {
+                    // outer arms and top
                     translate([0, mount_y/2, 0])
                     roundedcube([mount_x, mount_y, height - tolerance/4], center=true);
                     
+                    // cavity negative space
                     translate([0, cavity_y/2, 0])
                     cube([cavity_x, cavity_y, height], center=true);
                     
@@ -216,7 +221,7 @@ module half_droneside_bracket_v2(tolerance=tolerance, attachment_screw_spacing=4
                     }
                 }
                 
-                translate([0, -width_backstop_y, -tolerance/4 + height/2])
+                translate([0, -width_backstop_y + y_offset, -tolerance/4 + height/2])
                 for( x_translation = [-eport_screw_x_translation, eport_screw_x_translation] )
                 {
                     for( y_translation = [-eport_screw_y_translation, eport_screw_y_translation] )
@@ -233,8 +238,8 @@ module half_droneside_bracket_v2(tolerance=tolerance, attachment_screw_spacing=4
                     }
                 }
                 
-                translate([0, mount_y/2 - 10, height/2 - tolerance/8])
-                cube([width, mount_y - 22, height - tolerance/4], center=true);
+                translate([0, mount_y/2, height/2 - tolerance/8])
+                cube([width, mount_y , height - tolerance/4], center=true);
             }
             else if( skyport )
             {
@@ -497,8 +502,8 @@ module half_topside_bracket_v2(tolerance=tolerance, portside_clip=true, starboar
                 translate([x_translation, 0, -topside_bracket_extra_height])
                 cylinder(d=3.2, h=total_height);
                 
-                translate([x_translation, 0, height - 3])
-                cylinder(d=4.5, h=3);
+                translate([x_translation, 0, height - 3.5])
+                cylinder(d=5.5, h=3.5);
             }
         }
     }
@@ -513,10 +518,64 @@ module topside_bracket_v2(tolerance=tolerance)
     }
 }
 
+module attachment_point()
+{
+    translate([0, 0, attachment_point_height])
+    rotate([90, 0, 90])
+    difference()
+    {
+        union()
+        {
+            translate([-topside_bracket_width/2, -width_backstop_y, 0])
+            cube([topside_bracket_width, attachment_point_height, attachment_point_depth]);
+        }
+        union()
+        {
+            for( x_translation = [-mount_screw_x_translation, mount_screw_x_translation])
+            {
+                translate([x_translation, -width_backstop_y/2, 0])
+                cylinder(d=3.2, h=attachment_point_depth);
+            }
+        }
+    }
+}
 
+module test_mounting_plate()
+{
+    // base
+//    translate([
+    
+//    roundedcube([100, 100, 1], center=true, 0.5, "z");
+    coordinates = [ [-36, 14], [-36, -14], [5, -65], [11, -65], [11, 21], [5, 21] ];
+    negative_coordinates = [ [5, 15], [5, -6.75], [5, -35], [5, -58], [-30,-15], [-30, 10] ];
+    
+    translate([0, 0, -1])
+    linear_extrude(1)
+    difference()
+    {
+        polygon(coordinates);
+        polygon(negative_coordinates);
+    }
 
-final_tolerance = 0.05;
+    // rpi
+    translate([5, 7, 0])
+    union()
+    {
+        attachment_point();
+        translate([0, -58, 0])
+        attachment_point();
+    }
+    
+//    // eport
+//    translate([19, 0, 0])
+//    attachment_point();
+    
+    // skyport
+    translate([-36, 0, 0])
+    attachment_point();
+}
 
+final_tolerance = 0.1;
 
 //translate([0, 0, 0])
 //droneside_bracket_v2(tolerance=final_tolerance);
@@ -526,30 +585,33 @@ final_tolerance = 0.05;
 
 // *************************************************************************
 
+test_mounting_plate();
+
 // all parts for printing:
-translate([0, 0, 0])
-half_droneside_bracket_v2(tolerance=final_tolerance, rpi=true);
+//translate([0, 0, 0])
+//half_droneside_bracket_v2(tolerance=final_tolerance, rpi=true);
+//
+//translate([33, 0, 0])
+//half_droneside_bracket_v2(tolerance=final_tolerance, rpi=true);
+//
+//translate([74, 0, topside_bracket_extra_height])
+//translate([33, 0, topside_bracket_extra_height])
+//half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
+//
+//translate([108, 0, topside_bracket_extra_height])
+//half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=true, starboard_clip=false);
+//
+//translate([74, 40, topside_bracket_extra_height])
+//half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
+//
+//translate([108, 40, topside_bracket_extra_height])
+//half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=true, starboard_clip=false);
 
-translate([33, 0, 0])
-half_droneside_bracket_v2(tolerance=final_tolerance, rpi=true);
+//translate([20, -70, 0])
+//half_droneside_bracket_v2(tolerance=final_tolerance, eport=true, y_offset=11);
 
-translate([74, 0, topside_bracket_extra_height])
-half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
-
-translate([108, 0, topside_bracket_extra_height])
-half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=true, starboard_clip=false);
-
-translate([74, 40, topside_bracket_extra_height])
-half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
-
-translate([108, 40, topside_bracket_extra_height])
-half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=true, starboard_clip=false);
-
-translate([20, -50, 0])
-half_droneside_bracket_v2(tolerance=final_tolerance, eport=true);
-
-translate([90, -70, 0])
-half_droneside_bracket_v2(tolerance=final_tolerance, skyport=true);
+//translate([90, -70, 0])
+//half_droneside_bracket_v2(tolerance=final_tolerance, skyport=true);
 
 // *************************************************************************
 
