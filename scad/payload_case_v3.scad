@@ -1,8 +1,9 @@
 include <../library/boxes.scad>
 include <../library/roundedcube.scad>
 include <../library/honeycomb.scad>
+include <quick_release_bracket_v4.scad>
 
-$fn=30;
+$fn=120;
 
 radius = 145/2;
 top_radius = radius / 1.2;
@@ -21,6 +22,8 @@ eport_cable_clearance_y = 20;
 eport_cable_clearance_z = 2*(3.5 + edge_height); // below the edge, so eport_cable_clearance_z < bottom_thickness + (thickness - edge_height)
 echo("eport_cable_clearance_z: ", eport_cable_clearance_z);
 eport_cable_clearance_r = 2;
+
+skyport_wall_angle = -30;
 
 locking_screws = true;
 num_lock_blocks = 3;
@@ -262,15 +265,15 @@ module base_plate()
                 }
             }
             
-            // structural supports
-            for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
-            {
-                translate([x_translation, 0, bottom_thickness])
-                roundedCube([vertical_structural_support_x, vertical_structural_support_y, structural_support_thickness], 3, center=true);
-            }
+//            // structural supports
+//            for( x_translation = [-screw_spacing_x/2, screw_spacing_x/2] )
+//            {
+//                translate([x_translation, 0, bottom_thickness])
+//                roundedCube([vertical_structural_support_x, vertical_structural_support_y, structural_support_thickness], 3, center=true);
+//            }
             
-            translate([0, 0, bottom_thickness])
-            roundedCube([screw_spacing_x + 2, horizontal_structural_support_y+7, structural_support_thickness], 3, center=true);
+//            translate([0, 0, bottom_thickness])
+//            roundedCube([screw_spacing_x + 2, horizontal_structural_support_y+7, structural_support_thickness], 3, center=true);
             
             // reinforcements for mounting screws
             if( locking_screws )
@@ -301,6 +304,17 @@ module base_plate()
                     }
                 }
             }
+            for( x_translation=[-screw_spacing_x/2, screw_spacing_x/2] )
+            {
+                for( y_translation=[-screw_spacing_y/2, screw_spacing_y/2] )
+                {
+                    translate([x_translation, y_translation, 0])
+                    {
+                        translate([0, 0, 3])
+                        roundedcube([10, 10, 6], center=true);
+                    }
+                }
+            }
         }
         // negative space
         union()
@@ -322,142 +336,82 @@ module base_plate()
             
             // fan exhaust void
             cylinder(d=fan_diameter, h=bottom_thickness);
-            
-            for( x_translation = [-fan_screw_xy/2, fan_screw_xy/2] )
-            {
-                for( y_translation = [-fan_screw_xy/2, fan_screw_xy/2] )
-                {
-                    translate([x_translation, y_translation, 0])
-                    cylinder(d=fan_screw_diameter, h=bottom_thickness);
-                }
-            }
-            
-            // screw holes for mounting screws
-            if( locking_screws )
-            {
-                num = 3;
-                
-                for( angle = [ 0 : 360/num : 359 ] )
-                {
-                    rotate([0, 0, angle])
-                    translate([0, radius, edge_height + wall_height +3])
-                    rotate([90, 0, 0])
-                    cylinder(d=3.2, h=50, center=true);
-                }
-            }
         }
         
             // e port cable slot
             rotate([0, 0, eport_wall_angle])
             translate([0, -radius, wall_height])
             roundedCube([eport_cable_clearance_x, eport_cable_clearance_y, eport_cable_clearance_z], eport_cable_clearance_r, center=true);
+            
+            // sky port cable slot
+            rotate([0, 0, skyport_wall_angle])
+            translate([0, -radius, wall_height])
+            roundedCube([eport_cable_clearance_x, eport_cable_clearance_y, eport_cable_clearance_z], eport_cable_clearance_r, center=true);
+            
+            translate([0, 0, bottom_thickness/2])
+            {
+                roundedcube([50, 100, 2*bottom_thickness], radius=3, center=true);
+//                roundedcube([100, 50, 2*bottom_thickness], radius=3, center=true);
+            }
     }
     
-    // secondary positive space
-    union()
+    difference()
     {
-        // fan honeycomb without intersecting fan screw holes
-        difference()
+        union()
         {
-            // fan honeycomb
-            translate([-fan_side/2, -fan_side/2, 0])
-            linear_extrude(fan_honeycomb_thickness) {
-                honeycomb(fan_side, fan_side, 5, 0.5);
-            }
-            
-            // remove everything outside of the fan exhaust void
-            difference()
+            translate([-200/2, -200/2, 0])
+            linear_extrude( bottom_thickness )
             {
-                everything();
-                // fan exhaust void
-                cylinder(d=fan_diameter, h=bottom_thickness);
+                honeycomb(200, 200, 3, 6);
             }
         }
-        
-        // fan honeycomb cage
-        translate([0, 0, fan_cage_height/2 + thickness/2+1])
         difference()
         {
-            union()
-            {    
-                // left vertical wall
-                translate([-fan_cage_side/2, 0, 0])
-                rotate([0, 90, 0])
-                translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
-                linear_extrude(fan_cage_wall_thickness) {
-                    honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
-                }
-                
-                // right vertical wall
-                translate([fan_cage_side/2, 0, 0])
-                rotate([0, 90, 0])
-                translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
-                linear_extrude(fan_cage_wall_thickness) {
-                    honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
-                }
-                
-                // top horizontal wall
-                translate([0, fan_cage_side/2, 0])
-                rotate([0, 90, 90])
-                translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
-                linear_extrude(fan_cage_wall_thickness) {
-                    honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
-                }
-                
-                // bottom horizontal wall
-                translate([0, -fan_cage_side/2, 0])
-                rotate([0, 90, 90])
-                translate([-fan_cage_height/2, -fan_cage_side/2, -fan_cage_wall_thickness/2])
-                linear_extrude(fan_cage_wall_thickness) {
-                    honeycomb(fan_cage_height, fan_cage_side, fan_cage_honeycomb_diameter, fan_cage_honeycomb_thickness);
-                }
-                
-                // corner posts
-                t_offset = 0;
-                for( x_translation = [-fan_cage_side/2 + t_offset, fan_cage_side/2 - t_offset] )
-                {
-                    for( y_translation = [-fan_cage_side/2 + t_offset, fan_cage_side/2 - t_offset] )
-                    {
-                        translate([x_translation, y_translation, 0])
-    //                    cylinder(d=fan_cage_wall_thickness, h=fan_cage_height, center=true);
-                        cylinder(d=7.5, h=fan_cage_height, center=true);
-                    }
-                }
-                
-                // top braces
-                for( x_translation = [-fan_cage_side/2, fan_cage_side/2] )
-                {
-                    translate([x_translation, 0, fan_cage_height/2 - fan_cage_top_support_thickness/2])
-                    cube([fan_cage_wall_thickness, fan_cage_side, fan_cage_top_support_thickness], center=true);
-                }
-                for( y_translation = [-fan_cage_side/2, fan_cage_side/2] )
-                {
-                    translate([0, y_translation, fan_cage_height/2 - fan_cage_top_support_thickness/2])
-                    cube([fan_cage_side, fan_cage_wall_thickness, fan_cage_top_support_thickness], center=true);
-                }
-            }
-            
+            everything();
             union()
             {
-                // corner post threaded insert voids
-                t_offset = 0;
-                for( x_translation = [-fan_cage_side/2 + t_offset, fan_cage_side/2 - t_offset] )
+                translate([0, 0, bottom_thickness/2])
                 {
-                    for( y_translation = [-fan_cage_side/2 + t_offset, fan_cage_side/2 - t_offset] )
-                    {
-                        translate([x_translation, y_translation, fan_cage_height/2])
-                        rotate([180, 0, 0])
-                        union()
-                        {
-                            cylinder(d=4, h=6, center=false);
-                            cylinder(d=3.2, h=10, center=false);
-                        }
-                    }
+                    roundedcube([50, 100, 2*bottom_thickness], radius=3, center=true);
+                    roundedcube([100, 50, 2*bottom_thickness], radius=3, center=true);
                 }
             }
+//            dodecagon_prism(height=bottom_thickness, radius=radius);
         }
     }
+    
+    translate([-27, 0, bottom_thickness/2])
+    cube([10, 100, bottom_thickness], center=true);
+    
+    translate([19, 0, bottom_thickness/2])
+    cube([17.5, 100, bottom_thickness], center=true);
+    
+//    // fan honeycomb without intersecting fan screw holes
+//    difference()
+//    {
+//        // fan honeycomb
+//        translate([-fan_side/2, -fan_side/2, 0])
+//        linear_extrude(10) {
+//            honeycomb(fan_side, fan_side, 5, 0.5);
+//        }
+//        
+//        // remove everything outside of the fan exhaust void
+//        difference()
+//        {
+//            everything();
+//            // fan exhaust void
+//            cylinder(d=fan_diameter, h=bottom_thickness);
+//        }
+//    }
+    
+    translate([15, -34, 5 + bottom_thickness])
+    rotate([0, 0, -90])
+    component_mount();
 }
+
+//    translate([15, -34, 5])
+//    rotate([0, 0, -90])
+//    component_mount();
 
 //regular_prism(6, 50, 10);
 
@@ -466,6 +420,9 @@ module base_plate()
 
 base_plate();
 
-translate([0, 0, 100])
-//translate([0, 0, 15])
-top();
+//linear_extrude(10) {
+//    honeycomb(100, 100, 5, 10);
+//}
+
+//translate([0, 0, 200])
+//top();

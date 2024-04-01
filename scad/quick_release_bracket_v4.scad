@@ -203,33 +203,318 @@ module vv_track_inner(length=20, front_width=8, back_width=15, theta=65, height=
     }
 }
 
-module vv_track_outer(length=20, front_width=8, back_width=15, theta=65, height=4, tolerance=0.1, base_height=2, base_width=20)
+module vv_track_outer(length=20, front_width=8, back_width=15, theta=65, height=4, tolerance=0.1, base_height=2, base_width=20, qr_mechanism=false)
 {
     difference()
     {
-        translate([0, 0, base_height/2])
-        roundedcube([base_width, length, base_height + height], center=true);
-        
-        vv_track_inner(length=length, front_width=front_width, back_width=back_width, theta=theta, height=height, tolerance=-tolerance);
+        union()
+        {
+//            translate([0, 0, base_height/2])
+//            roundedcube([base_width, length, base_height + height], center=true);
+            
+            translate([-base_width/2, -length/2, -base_height])
+           cube([base_width, length, base_height + height]);
+        }
+        union()
+        {
+            vv_track_inner(length=length, front_width=front_width, back_width=back_width, theta=theta, height=height, tolerance=-tolerance);
+        }
     }
 }
 
-module quick_release_bracket_outer(length=20, front_width=8, back_width=15, theta=65, height=4, tolerance=0.1, base_height=2, base_width=20)
+module quick_release_bracket_outer(length=20, front_width=8, back_width=15, theta=65, height=4, tolerance=0.1, base_height=2, base_width=20, qr_mechanism=false, qr_left=false, qr_x=10, qr_y=2, qr_z=1, pin_screw_diameter=2.9)
 {
-    vv_track_outer(length=length, front_width=front_width, back_width=back_width, theta=theta, height=height, tolerance=tolerance);
+    difference()
+    {
+        union()
+        {
+            vv_track_outer(length=length, front_width=front_width, back_width=back_width, theta=theta, height=height, tolerance=tolerance, base_height=base_height);
+        }
+        union()
+        {
+            if( qr_mechanism )
+            {
+                x_translation = -base_width/2;
+                
+                if( qr_left )
+                {
+                    translate([x_translation, 0, 0])
+                    rotate([0, 90, 0])
+                    cylinder(d=pin_screw_diameter, h=qr_x);
+                }
+                else
+                {
+                    translate([-x_translation, 0, 0])
+                    rotate([0, -90, 0])
+                    cylinder(d=pin_screw_diameter, h=qr_x);
+                }
+            }
+        }
+    }
 }
 
-final_tolerance = 0.01;
+module quick_release_bracket_inner(length=20, front_width=8, back_width=15, theta=65, height=4, tolerance=0.1, base_height=2, base_width=20, qr_mechanism=false, qr_left=false, qr_x=10, qr_y=2, qr_z=1, pin_screw_diameter=2.9)
+{
+    difference()
+    {
+        union()
+        {
+            vv_track_inner(tolerance=final_tolerance, length=length, theta=theta);
+        }
+        union()
+        {
+            if( qr_mechanism )
+            {
+                x_translation = -base_width/2;
+                
+                if( qr_left )
+                {
+                    translate([x_translation, 0, 0])
+                    rotate([0, 90, 0])
+                    cylinder(d=pin_screw_diameter, h=qr_x);
+                }
+                else
+                {
+                    translate([-x_translation, 0, 0])
+                    rotate([0, -90, 0])
+                    cylinder(d=pin_screw_diameter, h=qr_x);
+                }
+            }
+        }
+    }
+}
+
+final_tolerance = 0;
+theta=45;
 length = 10;
+qr_x = 29;
+base_height = 4;
+pin_screw_diameter = 2.9;
 
-translate([30, 0, 0])
-quick_release_bracket_outer(tolerance=final_tolerance, length=length);
+module skyport_mount()
+{
+    mount_x  = 56;
+    mount_y  = 62;
+    
+    skyport_screw_x_translation = 50 / 2;
+    skyport_screw_y_translation = 56;
+    skyport_screw_y_offset = 0;
+    
+    mount_width  = 10;
+    mount_length = 30;
+    offset_y = 10;
+    minor_offset_y = 2; //for the rounded edges
+    
+    rotate([0, 0, 180])
+    translate([0, 0, -base_height])
+    quick_release_bracket_inner(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=false, theta=theta);
+    
+    difference()
+    {
+        union()
+        {
+            translate([mount_width/2, -length/2, -base_height])
+            rotate([0, 0, 180])
+            cube([mount_width, mount_y - length/2 - 1, base_height]);
+            
+            translate([0, -62 + 6, -base_height/2])
+            cube([mount_x, mount_width, base_height], center=true);
+            
+//            translate([0, -mount_width/2, -base_height])
+//            roundedcube([mount_x/2, mount_width, base_height]);
+            
+            translate([-skyport_screw_x_translation, -skyport_screw_y_translation, 0])
+            cylinder(d=4.5, h=4);
+            translate([skyport_screw_x_translation, -skyport_screw_y_translation, 0])
+            cylinder(d=4.5, h=4);
+//            translate([skyport_screw_x_translation, 0, 0])
+//            cylinder(d=4.5, h=7);
+        }
+        union()
+        {
+            translate([-skyport_screw_x_translation, -skyport_screw_y_translation, -base_height])
+            cylinder(d=3.2, h=11);
+            translate([skyport_screw_x_translation, -skyport_screw_y_translation, -base_height])
+            cylinder(d=3.2, h=11);
+//            translate([skyport_screw_x_translation, 0, -base_height])
+//            cylinder(d=3.2, h=10);
+        }
+    }
+}
 
-translate([0, 0, length/2])
-rotate([-90, 0, 0])
-vv_track_inner(tolerance=final_tolerance, length=length);
-translate([0, 0, -2])
-cylinder(d=30, h=2);
+module eport_mount()
+{
+    mount_x  = 56;
+    mount_y  = 62;
+    
+    skyport_screw_x_translation = 50 / 2;
+    skyport_screw_y_translation = 35;
+    skyport_screw_y_offset = 0;
+    
+    mount_width  = 10;
+    mount_length = 30;
+    offset_y = 10;
+    minor_offset_y = 2; //for the rounded edges
+    
+    translate([0, 0, -base_height])
+    rotate([0, 0, 180])
+    quick_release_bracket_inner(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    
+    difference()
+    {
+        union()
+        {
+            translate([mount_width/2, -length/2 , -base_height])
+            rotate([0, 0, 180])
+            cube([mount_width, mount_y - length/2 - 13, base_height]);
+            
+//            translate([-7, -5, -base_height/2])
+//            roundedcube([6, 5, base_height], center=true);
+            
+            translate([0, -45, -base_height/2])
+            cube([mount_x, mount_width, base_height], center=true);
+            
+//            translate([-mount_x/2, -mount_width/2 - 10, -base_height])
+//            cube([mount_x/2, mount_width, base_height]);
+            
+            translate([-skyport_screw_x_translation, -skyport_screw_y_translation - 10, 0])
+            cylinder(d=4.5, h=4);
+            translate([skyport_screw_x_translation, -skyport_screw_y_translation - 10, 0])
+            cylinder(d=4.5, h=4);
+//            translate([-skyport_screw_x_translation, -10, 0])
+//            cylinder(d=4.5, h=3);
+        }
+        union()
+        {
+            translate([-skyport_screw_x_translation, -skyport_screw_y_translation - 10, -base_height])
+            cylinder(d=3.2, h=8);
+            translate([skyport_screw_x_translation, -skyport_screw_y_translation - 10, -base_height])
+            cylinder(d=3.2, h=8);
+        }
+    }
+}
+
+module rpi_mount(left=true)
+{
+    mount_y  = 49;
+    
+    skyport_screw_x_translation = 50 / 2;
+    skyport_screw_y_translation = 35;
+    skyport_screw_y_offset = 0;
+    
+    mount_width  = 10;
+    mount_length = 49;
+    offset_y = 10;
+    minor_offset_y = 2; //for the rounded edges
+    
+    difference()
+    {
+        union()
+        {
+            translate([0, 0, -base_height])
+            rotate([0, 0, 180])
+            quick_release_bracket_inner(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=left, theta=theta);
+            
+            translate([0, -mount_length/2 - length/2, -base_height/2])
+            cube([10, mount_length, base_height], center=true);
+            
+            for( y_translation = [0, 49] )
+            {
+                translate([0, -y_translation, 0])
+                {
+                    cylinder(d=4.5, h=3.5);
+                }
+            }
+        }
+        union()
+        {
+            for( y_translation = [0, 49] )
+            {
+                translate([0, -y_translation, -base_height])
+                {
+                    cylinder(d=5.5, h=3.5);
+                    cylinder(d=3.0, h=10);
+                }
+            }
+        }
+    }
+}
+
+module component_mount(base=false)
+{
+    rotate([90, 0, 0])
+    translate([9, 0, 0])
+    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    
+    translate([-49, 0, 0])
+    rotate([90, 0, 0])
+    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    
+    translate([-34, 8, 0])
+    rotate([90, 0, 180])
+    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    
+    translate([-34, -42, 0])
+    rotate([90, 0, 0])
+    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    
+    translate([-34, 40, 0])
+    rotate([90, 0, 0])
+    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    
+    if( base )
+    {
+        translate([-20, 4, -5.5])
+        cube([78, 16, 1], center=true);
+        
+        translate([-34, 3, -5.5])
+        cube([20, 98, 1], center=true);
+//        difference()
+//        {
+//            translate([-20, -17.5, -5.5])
+//            cube([80, 60, 1], center=true);
+//            
+//            translate([-20, -20, -5.5])
+//            cube([60, 30, 1], center=true);
+//        }
+//        
+//        difference()
+//        {
+//            translate([-20, 22, -5.5])
+//            cube([80, 40, 1], center=true);
+//            
+//            translate([-20, 19, -5.5])
+//            cube([60, 30, 1], center=true);
+//        }
+    }
+}
+
+//component_mount(base=true);
+
+//rpi_mount(left=true);
+
+//translate([0, -5, 0])
+//skyport_mount();
+
+//translate([0, -5, 0])
+//eport_mount();
+
+//quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+
+//translate([30, 0, 0])
+//quick_release_bracket_inner(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter);
+
+//translate([30, 0, length/2])
+//rotate([-90, 0, 0])
+//quick_release_bracket_inner(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+//translate([30, 0, -2])
+//cylinder(d=30, h=2);
+
+//translate([30, 0, length/2])
+//rotate([-90, 0, 0])
+//vv_track_inner(tolerance=final_tolerance, length=length);
+//translate([0, 0, -2])
+//cylinder(d=30, h=2);
 
 //translate([30, 0, 0])
 //vv_track_outer(tolerance=final_tolerance);
@@ -239,3 +524,10 @@ cylinder(d=30, h=2);
 //quick_release_outer_v4();
 //
 //quick_release_inner_v4();
+
+module inner_bracket()
+{
+    quick_release_bracket_inner(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter);
+}
+
+//inner_bracket();
