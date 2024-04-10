@@ -75,7 +75,7 @@ spacing_track_x = 40;
 threaded_insert_translation_y = -30;
 
 topside_bracket_extension_height = 6;
-topside_bracket_extra_height = 9;
+topside_bracket_extra_height = 5;
 topside_bracket_width = 30;
 
 clip_width = 7;
@@ -283,14 +283,14 @@ module half_topside_bracket_v2(tolerance=tolerance, portside_clip=true, starboar
             for( y_translation = [-screw_spacing_y/2, screw_spacing_y/2] )
             {
                 // screw head cones
-                translate([0, y_translation, 0])
+                translate([0, y_translation, + 2])
                 rotate([0, 180, 0])
 //                base_plate_screw_head_cone();
                 large_screw_head_cylinder();
                 
                 // screw hole voids
                 translate([0, y_translation, -topside_bracket_extra_height + 0])
-                cylinder(d=diameter_screw_hole,h=topside_bracket_extension_height);
+                cylinder(d=diameter_screw_hole,h=topside_bracket_extension_height + 2);
             }       
             
 //            // alignment pegs

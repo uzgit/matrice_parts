@@ -259,4 +259,4 @@ module egg(width, length){
 
 // Tests:
 
-test_square_pyramid(){square_pyramid(10, 20, 30);}
+//test_square_pyramid(){square_pyramid(10, 20, 30);}

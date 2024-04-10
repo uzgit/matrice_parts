@@ -82,9 +82,9 @@ module v_track_female_extrusion(length=20, base_length=15, theta=75, depth=3, to
     v_track_female_cross_section(height=height, width=width, base_length=base_length, theta=theta, depth=depth, tolerance=tolerance);
 }
 
-length=20;
+//length=20;
 base_length=12.5;
-theta=65;
+//theta=65;
 depth=3;
 tolerance=0.1;
 height=5;
@@ -440,27 +440,91 @@ module rpi_mount(left=true)
     }
 }
 
-module component_mount(base=false)
+module bounding_box_skyport_dev_board(x=90, y=47, z=60)
 {
-    rotate([90, 0, 0])
-    translate([9, 0, 0])
-    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    color("green")
+    translate([0, 2, z/2 + 5])
+    cube([x, y, z], center=true);
+}
+
+module bounding_box_eport_dev_board(x=110, y=20, z=75)
+{
+    color("green")
+    translate([0, 2, z/2 + 5])
+    cube([x, y, z], center=true);
+}
+
+module bounding_box_rpi_heatsink_case(x=117.5, y=30, z=60)
+{
+    color("green")
+    translate([0, 2, z/2 + 5])
+    cube([x, y, z], center=true);
+}
+
+module bounding_box_dc_dc_converter(x=23, y=12, z=23)
+{
+    color("green")
+    translate([0, 2, z/2 + 5])
+    cube([x, y, z], center=true);
+}
+
+module component_mount(base=false, bounding_boxes=false)
+{
+    // rpi
+    translate([9, 0, 0]) // orig
+    translate([13, 0, 0])
+    {
+        rotate([90, 0, 0])
+        quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
     
-    translate([-49, 0, 0])
-    rotate([90, 0, 0])
-    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+        translate([-58, 0, 0])
+        rotate([90, 0, 0])
+        quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+        
+        if( bounding_boxes )
+        {
+            translate([-55, -17, 0])
+            bounding_box_rpi_heatsink_case();
+        }
+    }
     
-    translate([-34, 8, 0])
-    rotate([90, 0, 180])
-    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    // eport
+    translate([-36, 8, 0])
+    {
+        rotate([90, 0, 180])
+        quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
     
-    translate([-34, -42, 0])
-    rotate([90, 0, 0])
-    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+        if( bounding_boxes )
+        {
+            translate([0, 8, 0])
+            bounding_box_eport_dev_board();
+        }
+    }
     
+    
+    translate([-34, -42 + 5, 0])
+    {
+        rotate([90, 0, 0])
+        quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+        
+        if( bounding_boxes )
+        {
+            translate([0, -25.5, 0])
+            bounding_box_skyport_dev_board();
+        }
+    }
+    
+    // dc dc converter
     translate([-34, 40, 0])
-    rotate([90, 0, 0])
-    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+    {
+        rotate([90, 0, 0])
+        quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
+        
+        if(bounding_boxes)
+        {
+            bounding_box_dc_dc_converter();
+        }
+    }
     
     if( base )
     {
@@ -489,7 +553,7 @@ module component_mount(base=false)
     }
 }
 
-//component_mount(base=true);
+//component_mount(base=true, bounding_boxes=true);
 
 //rpi_mount(left=true);
 
