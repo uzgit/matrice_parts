@@ -403,7 +403,7 @@ module rpi_mount(left=true)
     skyport_screw_y_offset = 0;
     
     mount_width  = 10;
-    mount_length = 49;
+    mount_length = 48;
     offset_y = 10;
     minor_offset_y = 2; //for the rounded edges
     
@@ -473,6 +473,7 @@ module component_mount(base=false, bounding_boxes=false)
     // rpi
     translate([9, 0, 0]) // orig
     translate([13, 0, 0])
+    translate([0, 1.5, 0])
     {
         rotate([90, 0, 0])
         quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
@@ -501,7 +502,8 @@ module component_mount(base=false, bounding_boxes=false)
         }
     }
     
-    
+    // skyport
+    translate([0, 3, 0])
     translate([-34, -42 + 5, 0])
     {
         rotate([90, 0, 0])
@@ -525,6 +527,10 @@ module component_mount(base=false, bounding_boxes=false)
             bounding_box_dc_dc_converter();
         }
     }
+    
+    translate([-60, -68, 0])
+    rotate([90, 0, 90])
+    quick_release_bracket_outer(tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter, qr_left=true, theta=theta);
     
     if( base )
     {
@@ -553,7 +559,7 @@ module component_mount(base=false, bounding_boxes=false)
     }
 }
 
-//component_mount(base=true, bounding_boxes=true);
+//component_mount(base=true, bounding_boxes=false);
 
 //rpi_mount(left=true);
 

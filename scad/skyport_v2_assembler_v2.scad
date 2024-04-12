@@ -1,4 +1,5 @@
 include <../library/roundedcube.scad>
+include <./quick_release_bracket_v4.scad>
 
 $fn=60;
 
@@ -22,6 +23,8 @@ assembly_4b_standoff_diameter = 4;
 assembly_4b_thickness = 6;
 
 assembly_5_thickness = 2;
+
+assembly_6_thickness = 2;
 
 ring_thickness = 5;
 ring_height = 2;
@@ -339,6 +342,40 @@ module assembly_5()
     }
 }
 
+module assembly_6()
+{
+    difference()
+    {
+        union()
+        {
+            roundedcube([10, 25, assembly_6_thickness], radius=1, center=true, apply_to="z");
+
+            intermediate_block_height = 3;
+            translate([0, 0, assembly_6_thickness/2 + intermediate_block_height/2])
+            cube([10, 14, intermediate_block_height], center=true);
+            
+            final_tolerance = 0;
+            theta=45;
+            length = 10;
+            qr_x = 29;
+            base_height = 4;
+            pin_screw_diameter = 2.9;
+            translate([0, 0, assembly_6_thickness/2 + intermediate_block_height + 4])
+            rotate([0, 180, -90])
+            quick_release_bracket_inner(theta=theta, tolerance=final_tolerance, length=length, qr_mechanism=true, qr_x=qr_x, base_height=base_height, pin_screw_diameter=pin_screw_diameter);
+        }
+        union()
+        {
+            translate([0, 0, -assembly_6_thickness/2])
+            for( y_translation = [-10, 10] )
+            {
+                translate( [-2, y_translation, 0])
+                cylinder(d=screw_hole_diameter, h=3);
+            }
+        }
+    }
+}
+
 assembly_1();
 
 translate([0, 0, 15])
@@ -363,6 +400,9 @@ assembly_4b();
 translate([0, 0, 60])
 rotate([180, 0, 0])
 assembly_5();
+
+translate([-15, 0, 65])
+assembly_6();
 
 //assembly_3();
 

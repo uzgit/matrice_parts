@@ -3,7 +3,7 @@ include <../library/roundedcube.scad>
 include <../library/honeycomb.scad>
 include <quick_release_bracket_v4.scad>
 
-$fn=80;
+$fn=60;
 
 //radius = 145/2;
 radius = 150/2;
@@ -39,7 +39,7 @@ bottom_lock_block_y = 10;
 bottom_lock_block_z = 25;
 //lock_block_translation_x = radius - 
 canopy_height = 80;
-canopy_top_thickness = 1;
+canopy_top_thickness = 2;
 ventilation = true;
 ventilation_height = 4;
 ventilation_width  = 20;
@@ -348,6 +348,7 @@ module top_v2()
 
 module base_plate()
 {
+    edge_height_offset = 0.5;
     difference()
     {
         // primary positive space
@@ -358,9 +359,10 @@ module base_plate()
                 // bottom
                 dodecagon_prism(height=bottom_thickness, radius=radius);
                 
-                translate([-3.5, 0, bottom_thickness/2])
+                translate([0, 0, bottom_thickness/2])
                 {
-                    roundedcube([27.5, 125, 2*bottom_thickness], radius=3, center=true);
+                    translate([-1, 0, 0])
+                    roundedcube([23, 125, 2*bottom_thickness], radius=3, center=true);
                 }
             }
             
@@ -378,10 +380,19 @@ module base_plate()
                     translate([0, 0, wall_height - edge_height])
                     difference()
                     {
-                        dodecagon_prism(height=edge_height, radius=radius);
-                        dodecagon_prism(height=edge_height, radius=radius-wall_thickness+edge_thickness);
+                        union()
+                        {
+                            dodecagon_prism(height=edge_height, radius=radius);
+                        }
+                        union()
+                        {
+                            dodecagon_prism(height=edge_height, radius=radius-wall_thickness+edge_thickness);
+                        }
                     }
                 }
+                
+                translate([0, 0, wall_height - edge_height_offset])
+                dodecagon_prism(height=wall_height, radius=radius);
             }
             
             // reinforcements for mounting screws
@@ -431,7 +442,7 @@ module base_plate()
                 union()
                 {
                     translate([-200/2, -200/2, 0])
-                    translate([4, 0, 0]) // set screw for making the honeycomb align better to the cavity
+                    translate([1.75, 0, 0]) // set screw for making the honeycomb align better to the cavity
                     linear_extrude( bottom_thickness )
                     {
                         honeycomb(200, 200, 3, 6);
@@ -507,6 +518,7 @@ module base_plate()
 //    honeycomb(100, 100, 5, 10);
 //}
 
+//translate([0, 0, 70])
 //translate([0, 0, 11])
 //rotate([180, 0, 0])
 top_v2();
