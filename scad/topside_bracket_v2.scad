@@ -75,7 +75,7 @@ spacing_track_x = 40;
 threaded_insert_translation_y = -30;
 
 topside_bracket_extension_height = 6;
-topside_bracket_extra_height = 5;
+topside_bracket_extra_height = 7;
 topside_bracket_width = 30;
 
 clip_width = 7;
@@ -283,7 +283,7 @@ module half_topside_bracket_v2(tolerance=tolerance, portside_clip=true, starboar
             for( y_translation = [-screw_spacing_y/2, screw_spacing_y/2] )
             {
                 // screw head cones
-                translate([0, y_translation, + 2])
+                translate([0, y_translation, + 0])
                 rotate([0, 180, 0])
 //                base_plate_screw_head_cone();
                 large_screw_head_cylinder();
@@ -327,12 +327,12 @@ final_tolerance = 0.4;
 //translate([0, 0, 0])
 //topside_bracket_v2(tolerance=final_tolerance);
 
-// all parts for printing:
-translate([0, 0, 0])
-half_droneside_bracket_v2(tolerance=final_tolerance);
-
-translate([33, 0, 0])
-half_droneside_bracket_v2(tolerance=final_tolerance);
+//// all parts for printing:
+//translate([0, 0, 0])
+//half_droneside_bracket_v2(tolerance=final_tolerance);
+//
+//translate([33, 0, 0])
+//half_droneside_bracket_v2(tolerance=final_tolerance);
 
 translate([74, 0, topside_bracket_extra_height])
 half_topside_bracket_v2(tolerance=final_tolerance, portside_clip=false, starboard_clip=true);
