@@ -31,6 +31,7 @@ jetson_screw_x_offset = 45;
 jetson_screw_y_offset = 15;
 jetson_screw_spacing_y = 86;
 jetson_screw_spacing_x = 58;
+jetson_heatsink_screwhole_spacing = 32;
 
 a203_translation = [-23, -45, 0];
 a203_rotation = [0, 0, 90];
@@ -652,7 +653,57 @@ module vertical_mount(screw_spacing_x=49, screw_spacing_y=58, rail_bottom_extra=
     }
 }
 
-bottom();
+module psdk_adapter_mount()
+{
+    psdk_adapter_mount_thickness = 2;
+    psdk_adapter_mount_leg_width = 8;
+    forward_base_extension_x = 13.5;
+    psdk_adapter_diameter = 31.5;
+    psdk_adapter_insert_support_x = psdk_adapter_diameter + 5;
+    psdk_adapter_insert_support_y = psdk_adapter_diameter + 10;
+
+    difference()
+    {
+        translate([0, 0, psdk_adapter_mount_thickness/2])
+        union()
+        {
+            for( y_translation = [-jetson_heatsink_screwhole_spacing/2, jetson_heatsink_screwhole_spacing/2] )
+            translate([0, y_translation, 0])
+            roundedcube([jetson_heatsink_screwhole_spacing + psdk_adapter_mount_leg_width, psdk_adapter_mount_leg_width, psdk_adapter_mount_thickness], center=true, apply_to="z", radius=1);
+            
+            hull()
+            {
+                translate([jetson_heatsink_screwhole_spacing/2 + forward_base_extension_x/2, 0, 0])
+                roundedcube([forward_base_extension_x, jetson_heatsink_screwhole_spacing + psdk_adapter_mount_leg_width, psdk_adapter_mount_thickness], center=true, apply_to="z", radius=1);
+                
+                translate([jetson_heatsink_screwhole_spacing/2 + forward_base_extension_x + psdk_adapter_insert_support_x/2, 0, 0])
+                roundedcube([psdk_adapter_insert_support_x, psdk_adapter_insert_support_y, psdk_adapter_mount_thickness], center=true, apply_to="z", radius=1);
+            }
+        }
+        union()
+        {
+            for( x_translation = [-jetson_heatsink_screwhole_spacing/2, jetson_heatsink_screwhole_spacing/2] )
+            for( y_translation = [-jetson_heatsink_screwhole_spacing/2, jetson_heatsink_screwhole_spacing/2] )
+            translate([x_translation, y_translation, 0])
+            cylinder(d=3.1, h=psdk_adapter_mount_thickness);
+            
+            translate([jetson_heatsink_screwhole_spacing/2 + forward_base_extension_x + psdk_adapter_diameter/2 + 1, 0, 0])
+            union()
+            {
+                cylinder(d=psdk_adapter_diameter, h=psdk_adapter_mount_thickness);
+                
+                translate([0, psdk_adapter_diameter/2, psdk_adapter_mount_thickness/2])
+                roundedcube([12.5, 4, psdk_adapter_mount_thickness], center=true, apply_to="z", radius=1);
+            }
+        }
+
+    }
+}
+
+//bottom();
+
+psdk_adapter_mount();
+
 //
 //translate([length/2 - thickness, 0, 0])
 //rotate([0, -90, 0])

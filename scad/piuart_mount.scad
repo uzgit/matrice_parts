@@ -2,7 +2,7 @@ include <../library/roundedcube.scad>
 include <../library/pin_headers.scad>
 
 translate([3.81, 2.54, 0])
-pin_header( height=13, upper=13, lower=0, rows=3, cols=2, male = 0, hole_size=1.1 );
+pin_header( height=13, upper=13, lower=0, rows=3, cols=2, male = 0, hole_size=1.0 );
 
 height = 1.5;
 
