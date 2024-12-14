@@ -700,9 +700,68 @@ module psdk_adapter_mount()
     }
 }
 
+module shield()
+{
+    shield_thickness = 1;
+    margin = 12;
+    rounding_radius = 2;
+    
+    difference()
+    {
+        union()
+        {
+            translate([(length - front_length)/2, 0, 0])
+            roundedcube([front_length - margin, width - margin, shield_thickness], center=true, apply_to="z", radius=rounding_radius);
+
+            // front
+//            translate([-(front_length)/2, 0, 0])
+//            roundedcube([(length-front_length - margin), width - 2*plug_void_width - margin, shield_thickness], center=true, apply_to="z", radius=rounding_radius);
+            
+            // back
+            translate([-(front_length)/2, 0, 0])
+            roundedcube([(length-front_length - margin), width - 2*plug_void_width - margin, shield_thickness], center=true, apply_to="z", radius=rounding_radius);
+            
+            // middle connector
+            translate([(length - 2*front_length)/2, 0, 0])
+            roundedcube([2*margin, width - 2*plug_void_width - margin, shield_thickness], center=true, apply_to="z", radius=rounding_radius);
+        }
+        union()
+        {
+            translate([screw_x_offset, 0, 0])
+            for( x_translation=[-screw_spacing_x/2, screw_spacing_x/2] )
+            {
+                for( y_translation=[-screw_spacing_y/2, screw_spacing_y/2] )
+                {
+                    translate([x_translation, y_translation, 0])
+                    cylinder(d=3.1, h=7, center=true);
+                }
+            }
+            
+            translate(fan_translation)
+            rotate(fan_rotation)
+            union()
+            {
+                cylinder(d=fan_diameter, h=100);
+                for(x_translation = [-fan_screw_spacing/2, fan_screw_spacing/2])
+                for(y_translation = [-fan_screw_spacing/2, fan_screw_spacing/2])
+                    translate([x_translation, y_translation, 0])
+                    cylinder(d=3.1, h=100);
+            }
+            
+            side_length = fan_screw_spacing + 7;
+            translate(fan_translation)
+            roundedcube([side_length, side_length, 100], center=true, apply_to="z", radius=rounding_radius);
+        }
+    }
+}
+
 //bottom();
 
-psdk_adapter_mount();
+//translate([0, 0, -44])
+projection(cut=true)
+shield();
+
+//psdk_adapter_mount();
 
 //
 //translate([length/2 - thickness, 0, 0])
